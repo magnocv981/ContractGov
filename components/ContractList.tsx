@@ -35,6 +35,29 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
     );
   };
 
+  const getWarrantyBadge = (contrato: Contrato) => {
+    if (!contrato.data_conclusao_instalacao || !contrato.prazo_garantia_dias) return <span className="text-slate-600 text-[10px]">Não definida</span>;
+
+    const startDate = new Date(contrato.data_conclusao_instalacao);
+    const expiryDate = new Date(startDate);
+    expiryDate.setDate(startDate.getDate() + contrato.prazo_garantia_dias);
+    const now = new Date();
+
+    const isExpired = expiryDate < now;
+    const isExpiringSoon = !isExpired && (expiryDate.getTime() - now.getTime()) < (30 * 24 * 60 * 60 * 1000);
+
+    return (
+      <div className="flex flex-col">
+        <span className={`text-xs font-bold ${isExpired ? 'text-red-500' : isExpiringSoon ? 'text-orange-500' : 'text-green-500'}`}>
+          {expiryDate.toLocaleDateString('pt-BR')}
+        </span>
+        <span className="text-[9px] text-slate-500 uppercase font-medium">
+          {isExpired ? 'Vencida' : isExpiringSoon ? 'Vence em breve' : 'Em dia'}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -79,6 +102,7 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Instalados / Total</th>
                 <th className="px-6 py-4">Prazo Execução</th>
+                <th className="px-6 py-4">Garantia</th>
                 <th className="px-6 py-4 text-center">Ações</th>
               </tr>
             </thead>
@@ -111,7 +135,7 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
                       <span className={`text-sm font-medium ${contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() ? 'text-red-500' :
-                          contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) ? 'text-orange-500' : 'text-slate-300'
+                        contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) ? 'text-orange-500' : 'text-slate-300'
                         }`}>
                         {contrato.prazo_execucao ? new Date(contrato.prazo_execucao).toLocaleDateString('pt-BR') : 'N/A'}
                       </span>
@@ -119,6 +143,9 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
                         <span className="text-[10px] text-red-500 font-bold uppercase">Atrasado</span>
                       )}
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {getWarrantyBadge(contrato)}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center gap-2">
@@ -141,7 +168,7 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
                     Nenhum contrato encontrado.
                   </td>
                 </tr>

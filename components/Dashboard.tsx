@@ -12,7 +12,9 @@ import {
   PackageCheck,
   ClipboardList,
   AlertTriangle,
-  Calendar
+  Calendar,
+  ShieldCheck,
+  ShieldAlert
 } from 'lucide-react';
 import {
   BarChart,
@@ -102,6 +104,27 @@ const Dashboard: React.FC<DashboardProps> = ({ contratos, onNavigate }) => {
     const active = contratos.filter(c => c.status === 'Ativo').length;
     const pending = contratos.filter(c => c.status === 'Pendente').length;
 
+    // Garantias Expiring (next 30 days)
+    const expiringWarranties = contratos.filter(c => {
+      if (!c.data_conclusao_instalacao || !c.prazo_garantia_dias) return false;
+      const startDate = new Date(c.data_conclusao_instalacao);
+      const expiryDate = new Date(startDate);
+      expiryDate.setDate(startDate.getDate() + c.prazo_garantia_dias);
+
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(now.getDate() + 30);
+
+      return expiryDate >= now && expiryDate <= thirtyDaysFromNow;
+    });
+
+    const activeWarranties = contratos.filter(c => {
+      if (!c.data_conclusao_instalacao || !c.prazo_garantia_dias) return false;
+      const startDate = new Date(c.data_conclusao_instalacao);
+      const expiryDate = new Date(startDate);
+      expiryDate.setDate(startDate.getDate() + c.prazo_garantia_dias);
+      return expiryDate >= now;
+    }).length;
+
     // Chart Data
     const stateGroup = contratos.reduce((acc, c) => {
       if (!acc[c.estado]) {
@@ -136,7 +159,9 @@ const Dashboard: React.FC<DashboardProps> = ({ contratos, onNavigate }) => {
       active,
       pending,
       chartData,
-      stateGroup
+      stateGroup,
+      activeWarranties,
+      expiringWarranties
     };
   }, [contratos]);
 
@@ -294,6 +319,51 @@ const Dashboard: React.FC<DashboardProps> = ({ contratos, onNavigate }) => {
 
 
       {
+        stats.expiringWarranties.length > 0 && (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 animate-in slide-in-from-top-4 duration-500">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-500 rounded-lg">
+                <ShieldAlert size={20} className="text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">Garantias Vencendo em Breve</h3>
+                <p className="text-red-200/60 text-xs">Equipamentos com garantia terminando nos próximos 30 dias</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {stats.expiringWarranties.map(c => {
+                const startDate = new Date(c.data_conclusao_instalacao!);
+                const expiryDate = new Date(startDate);
+                expiryDate.setDate(startDate.getDate() + (c.prazo_garantia_dias || 365));
+                const daysRemaining = Math.ceil((expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+
+                return (
+                  <div key={c.id} className="bg-[#1e293b] border border-red-500/30 p-4 rounded-lg flex justify-between items-center group hover:border-red-500 transition-colors">
+                    <div className="min-w-0">
+                      <div className="text-white font-bold truncate text-sm">{c.cliente_orgao}</div>
+                      <div className="flex flex-col gap-1 mt-1">
+                        <span className="text-[10px] text-slate-500">Início: {startDate.toLocaleDateString('pt-BR')}</span>
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <Clock size={12} className="text-slate-400" />
+                          <span className="text-slate-400">Faltam: <strong className="text-red-400">{daysRemaining} dias</strong></span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => onNavigate(Screen.List)}
+                      className="p-2 text-slate-400 hover:text-white transition-colors"
+                    >
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )
+      }
+
+      {
         approachingDeadlines.length > 0 && (
           <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-6 animate-in slide-in-from-top-4 duration-500">
             <div className="flex items-center gap-3 mb-4">
@@ -393,6 +463,15 @@ const Dashboard: React.FC<DashboardProps> = ({ contratos, onNavigate }) => {
           value={stats.totalElevatorsInstalled + stats.totalPlatformsInstalled}
           subtitle="Total de Unidades Instaladas"
           icon={<CheckCircle2 size={20} />}
+          onClick={handleCardClick}
+        />
+
+        <KPICard
+          title="Garantias Ativas"
+          value={stats.activeWarranties}
+          subtitle={`${stats.expiringWarranties.length} vencendo em breve`}
+          icon={<ShieldCheck size={20} />}
+          color="text-blue-400"
           onClick={handleCardClick}
         />
       </div >

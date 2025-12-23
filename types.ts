@@ -21,6 +21,8 @@ export interface Contrato {
   data_inicio: string;
   data_encerramento: string;
   prazo_execucao: string; // Novo campo: prazo para execução/instalação
+  data_conclusao_instalacao?: string; // Data de conclusão da instalação (início da garantia)
+  prazo_garantia_dias?: number;       // Prazo de garantia em dias
   contatos?: Contato[];
 }
 

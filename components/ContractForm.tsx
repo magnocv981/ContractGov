@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, X, User, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, Save, X, User, CheckCircle, ShieldCheck } from 'lucide-react';
 import { Contrato, Contato, Screen } from '../types';
 
 interface ContractFormProps {
@@ -28,6 +28,8 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
     data_inicio: new Date().toISOString().split('T')[0],
     data_encerramento: '',
     prazo_execucao: '',
+    data_conclusao_instalacao: '',
+    prazo_garantia_dias: 365,
   });
 
   const [contatos, setContatos] = useState<Contato[]>([
@@ -51,7 +53,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: (name === 'valor_global' || name === 'qtde_plataformas' || name === 'qtde_elevadores' || name === 'instalados_plataformas' || name === 'instalados_elevadores')
+      [name]: (name === 'valor_global' || name === 'qtde_plataformas' || name === 'qtde_elevadores' || name === 'instalados_plataformas' || name === 'instalados_elevadores' || name === 'prazo_garantia_dias')
         ? Number(value)
         : value
     }));
@@ -238,8 +240,42 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               value={formData.prazo_execucao}
               onChange={handleChange}
               className={`${inputClasses} border-orange-900/50 focus:ring-orange-500`}
-              required
             />
+          </div>
+
+          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-900/10 p-5 rounded-xl border border-blue-500/20">
+            <div className="md:col-span-2 flex items-center gap-2 mb-1">
+              <ShieldCheck size={20} className="text-blue-400" />
+              <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider">Controle de Garantia do Equipamento</h3>
+            </div>
+
+            <div>
+              <label className={labelClasses}>Conclusão da Instalação (Início da Garantia)</label>
+              <input
+                type="date"
+                name="data_conclusao_instalacao"
+                value={formData.data_conclusao_instalacao || ''}
+                onChange={handleChange}
+                className={`${inputClasses} border-blue-900/50 focus:ring-blue-500`}
+              />
+              <p className="text-[10px] text-slate-500 mt-1">A garantia começa a contar a partir desta data.</p>
+            </div>
+
+            <div>
+              <label className={labelClasses}>Prazo de Garantia (Dias)</label>
+              <select
+                name="prazo_garantia_dias"
+                value={formData.prazo_garantia_dias || 365}
+                onChange={handleChange}
+                className={`${inputClasses} border-blue-900/50 focus:ring-blue-500`}
+              >
+                <option value={90}>90 dias (3 meses)</option>
+                <option value={180}>180 dias (6 meses)</option>
+                <option value={270}>270 dias (9 meses)</option>
+                <option value={365}>365 dias (1 ano)</option>
+                <option value={730}>730 dias (2 anos)</option>
+              </select>
+            </div>
           </div>
         </div>
 
