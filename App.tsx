@@ -1,13 +1,15 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { LayoutDashboard, FileText, Menu, X, LogOut, Bell, Loader2 } from 'lucide-react';
-import Dashboard from './components/Dashboard';
-import ContractForm from './components/ContractForm';
-import ContractList from './components/ContractList';
-import Auth from './components/Auth';
 import { Contrato, Contato, Screen } from './types';
 import { supabase, supabaseService } from './supabaseClient';
 import { Session } from '@supabase/supabase-js';
+
+// Lazy load components
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const ContractForm = lazy(() => import('./components/ContractForm'));
+const ContractList = lazy(() => import('./components/ContractList'));
+const Auth = lazy(() => import('./components/Auth'));
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -124,8 +126,8 @@ const App: React.FC = () => {
     <button
       onClick={() => { setCurrentScreen(screen); setIsSidebarOpen(false); }}
       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${currentScreen === screen
-          ? 'bg-blue-600/10 text-blue-500 border-l-4 border-blue-600'
-          : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+        ? 'bg-blue-600/10 text-blue-500 border-l-4 border-blue-600'
+        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
         }`}
     >
       {icon}
@@ -225,7 +227,13 @@ const App: React.FC = () => {
 
         {/* Dynamic Screen Content */}
         <div className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-          {renderContent()}
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-[60vh]">
+              <Loader2 className="animate-spin text-blue-500" size={48} />
+            </div>
+          }>
+            {renderContent()}
+          </Suspense>
         </div>
 
         {/* Footer */}
