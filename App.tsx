@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { LayoutDashboard, FileText, Menu, X, LogOut, Bell, Loader2 } from 'lucide-react';
-import { Contrato, Contato, Screen } from './types';
+import { LayoutDashboard, FileText, Menu, X, LogOut, Bell, Loader2, ShieldCheck, User } from 'lucide-react';
+import { Contrato, Contato, Screen, Profile } from './types';
 import { supabase, supabaseService } from './supabaseClient';
 import { Session } from '@supabase/supabase-js';
 
@@ -16,6 +16,7 @@ const App: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen>(Screen.Dashboard);
   const [contratos, setContratos] = useState<Contrato[]>([]);
   const [editingContrato, setEditingContrato] = useState<Contrato | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -25,6 +26,7 @@ const App: React.FC = () => {
       setSession(session);
       if (session) {
         loadData();
+        loadProfile();
       } else {
         setIsLoading(false);
       }
@@ -35,14 +37,25 @@ const App: React.FC = () => {
       setSession(session);
       if (session) {
         loadData();
+        loadProfile();
       } else {
         setContratos([]);
+        setProfile(null);
         setIsLoading(false);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const loadProfile = async () => {
+    try {
+      const profileData = await supabaseService.getProfile();
+      setProfile(profileData);
+    } catch (error) {
+      console.error("Erro ao carregar perfil:", error);
+    }
+  };
 
   const loadData = async () => {
     setIsLoading(true);
@@ -152,7 +165,7 @@ const App: React.FC = () => {
 
         <nav className="flex-1 space-y-2">
           <NavItem screen={Screen.Dashboard} icon={<LayoutDashboard size={20} />} label="Dashboard" />
-          <NavItem screen={Screen.List} icon={<FileText size={20} />} label="Meus Contratos" />
+          <NavItem screen={Screen.List} icon={<FileText size={20} />} label={profile?.role === 'admin' ? "Todos os Contratos" : "Meus Contratos"} />
         </nav>
 
         <div className="pt-6 border-t border-slate-800">
@@ -181,7 +194,7 @@ const App: React.FC = () => {
             </div>
             <nav className="space-y-2">
               <NavItem screen={Screen.Dashboard} icon={<LayoutDashboard size={20} />} label="Dashboard" />
-              <NavItem screen={Screen.List} icon={<FileText size={20} />} label="Contratos" />
+              <NavItem screen={Screen.List} icon={<FileText size={20} />} label={profile?.role === 'admin' ? "Todos os Contratos" : "Contratos"} />
             </nav>
             <div className="pt-6 border-t border-slate-800">
               <button
@@ -215,12 +228,26 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <div className="hidden sm:flex flex-col items-end mr-2">
+              <span className="text-xs font-semibold text-white">{session.user.email}</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full ${profile?.role === 'admin' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-blue-500/10 text-blue-500 border border-blue-500/20'}`}>
+                {profile?.role === 'admin' ? 'Administrador' : 'Usuário'}
+              </span>
+            </div>
             <button className="p-2 text-slate-400 hover:text-white relative transition-colors">
               <Bell size={20} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full border-2 border-[#1e293b]"></span>
             </button>
-            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs ring-2 ring-slate-800 shadow-lg">
-              {session.user.email?.substring(0, 2).toUpperCase()}
+            <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white ring-2 ring-slate-800 shadow-xl relative group`}>
+              {profile?.role === 'admin' ? (
+                <div className="bg-gradient-to-tr from-amber-500 to-orange-600 h-full w-full rounded-full flex items-center justify-center">
+                  <ShieldCheck size={20} />
+                </div>
+              ) : (
+                <div className="bg-gradient-to-tr from-blue-600 to-indigo-600 h-full w-full rounded-full flex items-center justify-center">
+                  <User size={20} />
+                </div>
+              )}
             </div>
           </div>
         </header>

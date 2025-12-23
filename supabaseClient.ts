@@ -1,6 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-import { Contrato, Contato } from './types';
+import { Contrato, Contato, Profile } from './types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -8,6 +8,20 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const supabaseService = {
+  getProfile: async (): Promise<Profile> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Usuário não autenticado");
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error) throw error;
+    return data as Profile;
+  },
+
   getContratos: async (): Promise<Contrato[]> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Usuário não autenticado");
@@ -30,7 +44,7 @@ export const supabaseService = {
       ...contrato,
       user_id: user.id
     };
-    
+
     // Remove contatos from contract object if it exists to avoid error on insert/update
     delete contractData.contatos;
 

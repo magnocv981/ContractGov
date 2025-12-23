@@ -24,6 +24,15 @@ export interface Contrato {
   contatos?: Contato[];
 }
 
+export type UserRole = 'admin' | 'user';
+
+export interface Profile {
+  id: string;
+  email: string;
+  role: UserRole;
+  updated_at?: string;
+}
+
 export enum Screen {
   Dashboard = 'DASHBOARD',
   List = 'LIST',
