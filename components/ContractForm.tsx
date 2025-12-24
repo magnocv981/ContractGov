@@ -85,7 +85,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
   const labelClasses = "block text-sm font-medium text-slate-400 mb-1.5";
 
   return (
-    <div className="bg-[#1e293b] p-8 rounded-xl border border-slate-800 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+    <div className="bg-[#1e293b] p-4 md:p-8 rounded-xl border border-slate-800 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
           <span className="text-blue-500">{contratoToEdit ? 'Editar' : 'Novo'}</span> Contrato
@@ -107,6 +107,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               placeholder="Ex: Secretaria de Educação"
               className={inputClasses}
               required
+              autoComplete="off"
             />
           </div>
           <div>
@@ -150,8 +151,8 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 md:col-span-2 bg-slate-800/30 p-4 rounded-lg border border-slate-700/50">
-            <div className="col-span-2 mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:col-span-2 bg-slate-800/30 p-4 rounded-lg border border-slate-700/50">
+            <div className="sm:col-span-2 mb-2">
               <h3 className="text-sm font-semibold text-blue-400 flex items-center gap-2">
                 <LayoutGrid size={16} /> Quantidades do Contrato vs. Instaladas
               </h3>
@@ -164,6 +165,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                 value={formData.qtde_plataformas}
                 onChange={handleChange}
                 className={inputClasses}
+                inputMode="numeric"
               />
             </div>
             <div>
@@ -174,6 +176,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                 value={formData.instalados_plataformas}
                 onChange={handleChange}
                 className={`${inputClasses} border-green-900/50 focus:ring-green-500`}
+                inputMode="numeric"
               />
             </div>
             <div>
@@ -184,6 +187,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                 value={formData.qtde_elevadores}
                 onChange={handleChange}
                 className={inputClasses}
+                inputMode="numeric"
               />
             </div>
             <div>
@@ -194,6 +198,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                 value={formData.instalados_elevadores}
                 onChange={handleChange}
                 className={`${inputClasses} border-green-900/50 focus:ring-green-500`}
+                inputMode="numeric"
               />
             </div>
           </div>
@@ -294,36 +299,44 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
             </button>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {contatos.map((contato, index) => (
-              <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end bg-[#0f172a]/50 p-4 rounded-xl border border-slate-800/50">
-                <div>
-                  <label className="text-xs text-slate-500 mb-1 block">Nome</label>
-                  <input
-                    type="text"
-                    name="nome"
-                    value={contato.nome}
-                    onChange={(e) => handleContactChange(index, e)}
-                    placeholder="Nome do contato"
-                    className={inputClasses}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500 mb-1 block">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={contato.email}
-                    onChange={(e) => handleContactChange(index, e)}
-                    placeholder="email@empresa.com"
-                    className={inputClasses}
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1">
-                    <label className="text-xs text-slate-500 mb-1 block">Telefone</label>
+              <div key={index} className="flex flex-col gap-4 bg-[#0f172a]/50 p-4 rounded-xl border border-slate-800/50 relative">
+                <button
+                  type="button"
+                  onClick={() => removeContact(index)}
+                  className="absolute top-4 right-4 p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                >
+                  <Trash2 size={20} />
+                </button>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Nome</label>
                     <input
                       type="text"
+                      name="nome"
+                      value={contato.nome}
+                      onChange={(e) => handleContactChange(index, e)}
+                      placeholder="Nome do contato"
+                      className={inputClasses}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={contato.email}
+                      onChange={(e) => handleContactChange(index, e)}
+                      placeholder="email@empresa.com"
+                      className={inputClasses}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Telefone</label>
+                    <input
+                      type="tel"
                       name="telefone"
                       value={contato.telefone}
                       onChange={(e) => handleContactChange(index, e)}
@@ -331,32 +344,25 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                       className={inputClasses}
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeContact(index)}
-                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                  >
-                    <Trash2 size={20} />
-                  </button>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 mt-10">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 mt-10">
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+            className="px-6 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-center order-2 sm:order-1"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg transition-all font-semibold shadow-lg shadow-blue-900/40"
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition-all font-semibold shadow-lg shadow-blue-900/40 text-lg order-1 sm:order-2"
           >
-            <Save size={18} />
+            <Save size={20} />
             Salvar Contrato
           </button>
         </div>

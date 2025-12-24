@@ -92,7 +92,7 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-left">
             <thead className="bg-[#0f172a]/50 text-slate-400 text-xs font-semibold uppercase tracking-wider">
               <tr>
@@ -175,6 +175,54 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View: Card-based layout */}
+        <div className="md:hidden divide-y divide-slate-800">
+          {filteredContratos.length > 0 ? filteredContratos.map((contrato) => (
+            <div
+              key={contrato.id}
+              onClick={() => onEdit(contrato)}
+              className="p-4 active:bg-slate-800 transition-colors flex items-center justify-between gap-4 cursor-pointer"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-white font-bold truncate">{contrato.cliente_orgao}</h3>
+                  <span className="text-slate-500 text-xs font-mono font-bold ml-2">{contrato.estado}</span>
+                </div>
+                <div className="text-xs text-slate-400 truncate mb-2">
+                  {contrato.objeto_contrato || 'Sem descrição'}
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-blue-400 font-bold text-sm">
+                    {formatCurrency(contrato.valor_global)}
+                  </span>
+                  {getStatusBadge(contrato.status)}
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <div className="text-[10px] text-slate-500 flex flex-col items-end">
+                  <span className="flex gap-1 items-center">
+                    <span className="text-green-500 font-bold">{contrato.instalados_elevadores || 0 + (contrato.instalados_plataformas || 0)}</span>
+                    / {contrato.qtde_elevadores + contrato.qtde_plataformas} un
+                  </span>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    contrato.id && onDelete(contrato.id);
+                  }}
+                  className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            </div>
+          )) : (
+            <div className="px-6 py-12 text-center text-slate-500">
+              Nenhum contrato encontrado.
+            </div>
+          )}
         </div>
       </div>
     </div>
