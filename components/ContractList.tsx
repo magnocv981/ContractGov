@@ -108,9 +108,13 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
             </thead>
             <tbody className="divide-y divide-slate-800">
               {filteredContratos.length > 0 ? filteredContratos.map((contrato) => (
-                <tr key={contrato.id} className="hover:bg-slate-800/40 transition-colors">
+                <tr
+                  key={contrato.id}
+                  className="hover:bg-slate-800/60 transition-colors cursor-pointer group"
+                  onClick={() => onEdit(contrato)}
+                >
                   <td className="px-6 py-4">
-                    <div className="font-medium text-white">{contrato.cliente_orgao}</div>
+                    <div className="font-medium text-white group-hover:text-blue-400 transition-colors">{contrato.cliente_orgao}</div>
                     <div className="text-xs text-slate-500 truncate max-w-xs">{contrato.objeto_contrato || 'Sem descrição'}</div>
                   </td>
                   <td className="px-6 py-4 text-slate-300 font-mono">{contrato.estado}</td>
@@ -150,14 +154,14 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
                   <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <button
-                        onClick={() => onEdit(contrato)}
+                        onClick={(e) => { e.stopPropagation(); onEdit(contrato); }}
                         className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
                         title="Editar"
                       >
                         <Edit2 size={18} />
                       </button>
                       <button
-                        onClick={() => contrato.id && onDelete(contrato.id)}
+                        onClick={(e) => { e.stopPropagation(); contrato.id && onDelete(contrato.id); }}
                         className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                         title="Excluir"
                       >

@@ -10,6 +10,7 @@ export interface Contato {
 export interface Contrato {
   id?: string;
   cliente_orgao: string;
+  cnpj: string; // Novo campo
   estado: string;
   valor_global: number;
   status: 'Ativo' | 'Pendente' | 'Encerrado' | 'Cancelado';

@@ -4,9 +4,10 @@ CREATE TABLE IF NOT EXISTS contratos (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     cliente_orgao TEXT NOT NULL,
+    cnpj TEXT,
     estado TEXT NOT NULL,
-    valor_global DECIMAL(15, 2) NOT NULL,
-    status TEXT CHECK (status IN ('Ativo', 'Pendente', 'Encerrado', 'Cancelado')) NOT NULL,
+    valor_global DECIMAL(15, 2) NOT NULL DEFAULT 0,
+    status TEXT CHECK (status IN ('Ativo', 'Pendente', 'Encerrado', 'Cancelado')) NOT NULL DEFAULT 'Pendente',
     qtde_plataformas INTEGER NOT NULL DEFAULT 0,
     qtde_elevadores INTEGER NOT NULL DEFAULT 0,
     instalados_plataformas INTEGER NOT NULL DEFAULT 0,
@@ -14,8 +15,11 @@ CREATE TABLE IF NOT EXISTS contratos (
     objeto_contrato TEXT,
     data_inicio DATE,
     data_encerramento DATE,
+    prazo_execucao DATE,
+    data_conclusao_instalacao DATE,
+    prazo_garantia_dias INTEGER DEFAULT 365,
     created_at TIMESTAMPTZ DEFAULT now()
-);
+ );
 
 -- Tabela de Contatos
 CREATE TABLE IF NOT EXISTS contatos (

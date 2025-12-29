@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, X, User, CheckCircle, ShieldCheck } from 'lucide-react';
+import { Plus, Trash2, Save, X, User, CheckCircle, ShieldCheck, Edit2 } from 'lucide-react';
 import { Contrato, Contato, Screen } from '../types';
 
 interface ContractFormProps {
@@ -14,9 +14,18 @@ const ESTADOS = [
   'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
 ];
 
+const formatBRL = (val: number) =>
+  new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(val);
+
 const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onCancel }) => {
   const [formData, setFormData] = useState<Contrato>({
     cliente_orgao: '',
+    cnpj: '',
     estado: '',
     valor_global: 0,
     status: 'Pendente',
@@ -32,6 +41,8 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
     prazo_garantia_dias: 365,
   });
 
+  const [isReadOnly, setIsReadOnly] = useState(!!contratoToEdit);
+
   const [contatos, setContatos] = useState<Contato[]>([
     { nome: '', email: '', telefone: '' }
   ]);
@@ -40,6 +51,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
     if (contratoToEdit) {
       setFormData({
         ...contratoToEdit,
+        cnpj: contratoToEdit.cnpj || '',
         instalados_plataformas: contratoToEdit.instalados_plataformas || 0,
         instalados_elevadores: contratoToEdit.instalados_elevadores || 0
       });
@@ -51,6 +63,16 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+
+    // Logic for "Instalado em" (data_conclusao_instalacao)
+    if (name === 'data_conclusao_instalacao' && value && !formData.data_conclusao_instalacao) {
+      const prazo = window.prompt("Qual seria o prazo de garantia em dias?", "365");
+      if (prazo) {
+        setFormData(prev => ({ ...prev, [name]: value, prazo_garantia_dias: Number(prazo) }));
+        return;
+      }
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: (name === 'valor_global' || name === 'qtde_plataformas' || name === 'qtde_elevadores' || name === 'instalados_plataformas' || name === 'instalados_elevadores' || name === 'prazo_garantia_dias')
@@ -88,11 +110,22 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
     <div className="bg-[#1e293b] p-4 md:p-8 rounded-xl border border-slate-800 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-          <span className="text-blue-500">{contratoToEdit ? 'Editar' : 'Novo'}</span> Contrato
+          <span className="text-blue-500">{isReadOnly ? 'Visualizar' : (contratoToEdit ? 'Editar' : 'Novo')}</span> Contrato
         </h2>
-        <button onClick={onCancel} className="text-slate-500 hover:text-white transition-colors">
-          <X size={24} />
-        </button>
+        <div className="flex items-center gap-4">
+          {isReadOnly && (
+            <button
+              type="button"
+              onClick={() => setIsReadOnly(false)}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg transition-all font-bold text-sm shadow-lg shadow-blue-900/40 border border-blue-400/30"
+            >
+              <Edit2 size={18} /> Editar Contrato
+            </button>
+          )}
+          <button onClick={onCancel} className="text-slate-500 hover:text-white transition-colors">
+            <X size={24} />
+          </button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -108,6 +141,20 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               className={inputClasses}
               required
               autoComplete="off"
+              disabled={isReadOnly}
+            />
+          </div>
+          <div className="md:col-span-1">
+            <label className={labelClasses}>CNPJ</label>
+            <input
+              type="text"
+              name="cnpj"
+              value={formData.cnpj || ''}
+              onChange={handleChange}
+              placeholder="00.000.000/0000-00"
+              className={inputClasses}
+              autoComplete="off"
+              disabled={isReadOnly}
             />
           </div>
           <div>
@@ -118,6 +165,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               onChange={handleChange}
               className={inputClasses}
               required
+              disabled={isReadOnly}
             >
               <option value="">Selecione o estado</option>
               {ESTADOS.map(uf => <option key={uf} value={uf}>{uf}</option>)}
@@ -126,15 +174,32 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
 
           <div>
             <label className={labelClasses}>Valor Global (R$)</label>
-            <input
-              type="number"
-              step="0.01"
-              name="valor_global"
-              value={formData.valor_global}
-              onChange={handleChange}
-              className={inputClasses}
-              required
-            />
+            <div className="relative">
+              {isReadOnly ? (
+                <div className={`${inputClasses} pl-4 font-mono font-bold text-blue-400 bg-slate-900/50 flex items-center`}>
+                  {formatBRL(formData.valor_global || 0)}
+                </div>
+              ) : (
+                <>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">R$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="valor_global"
+                    value={formData.valor_global}
+                    onChange={handleChange}
+                    className={`${inputClasses} pl-12 font-mono font-bold text-blue-400`}
+                    required
+                    placeholder="0,00"
+                  />
+                </>
+              )}
+            </div>
+            {!isReadOnly && (
+              <p className="text-[10px] text-slate-500 mt-1">
+                Visualização: <span className="text-blue-400 font-bold">{formatBRL(formData.valor_global || 0)}</span>
+              </p>
+            )}
           </div>
           <div>
             <label className={labelClasses}>Status</label>
@@ -143,6 +208,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               value={formData.status}
               onChange={handleChange}
               className={inputClasses}
+              disabled={isReadOnly}
             >
               <option value="Ativo">Ativo</option>
               <option value="Pendente">Pendente</option>
@@ -166,6 +232,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                 onChange={handleChange}
                 className={inputClasses}
                 inputMode="numeric"
+                disabled={isReadOnly}
               />
             </div>
             <div>
@@ -177,6 +244,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                 onChange={handleChange}
                 className={`${inputClasses} border-green-900/50 focus:ring-green-500`}
                 inputMode="numeric"
+                disabled={isReadOnly}
               />
             </div>
             <div>
@@ -188,6 +256,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                 onChange={handleChange}
                 className={inputClasses}
                 inputMode="numeric"
+                disabled={isReadOnly}
               />
             </div>
             <div>
@@ -199,6 +268,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                 onChange={handleChange}
                 className={`${inputClasses} border-green-900/50 focus:ring-green-500`}
                 inputMode="numeric"
+                disabled={isReadOnly}
               />
             </div>
           </div>
@@ -212,6 +282,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               rows={3}
               className={inputClasses}
               placeholder="Descreva o objeto do contrato..."
+              disabled={isReadOnly}
             />
           </div>
 
@@ -224,6 +295,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               onChange={handleChange}
               className={inputClasses}
               required
+              disabled={isReadOnly}
             />
           </div>
           <div>
@@ -235,6 +307,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               onChange={handleChange}
               className={inputClasses}
               required
+              disabled={isReadOnly}
             />
           </div>
           <div>
@@ -245,6 +318,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               value={formData.prazo_execucao}
               onChange={handleChange}
               className={`${inputClasses} border-orange-900/50 focus:ring-orange-500`}
+              disabled={isReadOnly}
             />
           </div>
 
@@ -255,31 +329,29 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
             </div>
 
             <div>
-              <label className={labelClasses}>Conclusão da Instalação (Início da Garantia)</label>
+              <label className={labelClasses}>Instalado em</label>
               <input
                 type="date"
                 name="data_conclusao_instalacao"
                 value={formData.data_conclusao_instalacao || ''}
                 onChange={handleChange}
                 className={`${inputClasses} border-blue-900/50 focus:ring-blue-500`}
+                disabled={isReadOnly}
               />
-              <p className="text-[10px] text-slate-500 mt-1">A garantia começa a contar a partir desta data.</p>
+              <p className="text-[10px] text-slate-500 mt-1">Ao preencher, o sistema solicitará o prazo de garantia.</p>
             </div>
 
             <div>
               <label className={labelClasses}>Prazo de Garantia (Dias)</label>
-              <select
+              <input
+                type="number"
                 name="prazo_garantia_dias"
-                value={formData.prazo_garantia_dias || 365}
+                value={formData.prazo_garantia_dias || ''}
                 onChange={handleChange}
+                placeholder="Ex: 365"
                 className={`${inputClasses} border-blue-900/50 focus:ring-blue-500`}
-              >
-                <option value={90}>90 dias (3 meses)</option>
-                <option value={180}>180 dias (6 meses)</option>
-                <option value={270}>270 dias (9 meses)</option>
-                <option value={365}>365 dias (1 ano)</option>
-                <option value={730}>730 dias (2 anos)</option>
-              </select>
+                disabled={isReadOnly}
+              />
             </div>
           </div>
         </div>
@@ -290,25 +362,29 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               <User size={20} />
               Contatos Vinculados
             </h3>
-            <button
-              type="button"
-              onClick={addContact}
-              className="flex items-center gap-1.5 text-sm font-medium bg-green-600/10 text-green-500 hover:bg-green-600/20 px-3 py-1.5 rounded-lg transition-all"
-            >
-              <Plus size={16} /> Adicionar Contato
-            </button>
+            {!isReadOnly && (
+              <button
+                type="button"
+                onClick={addContact}
+                className="flex items-center gap-1.5 text-sm font-medium bg-green-600/10 text-green-500 hover:bg-green-600/20 px-3 py-1.5 rounded-lg transition-all"
+              >
+                <Plus size={16} /> Adicionar Contato
+              </button>
+            )}
           </div>
 
           <div className="space-y-4">
             {contatos.map((contato, index) => (
               <div key={index} className="flex flex-col gap-4 bg-[#0f172a]/50 p-4 rounded-xl border border-slate-800/50 relative">
-                <button
-                  type="button"
-                  onClick={() => removeContact(index)}
-                  className="absolute top-4 right-4 p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                >
-                  <Trash2 size={20} />
-                </button>
+                {!isReadOnly && (
+                  <button
+                    type="button"
+                    onClick={() => removeContact(index)}
+                    className="absolute top-4 right-4 p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
@@ -320,6 +396,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                       onChange={(e) => handleContactChange(index, e)}
                       placeholder="Nome do contato"
                       className={inputClasses}
+                      disabled={isReadOnly}
                     />
                   </div>
                   <div>
@@ -331,6 +408,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                       onChange={(e) => handleContactChange(index, e)}
                       placeholder="email@empresa.com"
                       className={inputClasses}
+                      disabled={isReadOnly}
                     />
                   </div>
                   <div>
@@ -342,6 +420,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                       onChange={(e) => handleContactChange(index, e)}
                       placeholder="(00) 00000-0000"
                       className={inputClasses}
+                      disabled={isReadOnly}
                     />
                   </div>
                 </div>
@@ -356,15 +435,17 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
             onClick={onCancel}
             className="px-6 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-center order-2 sm:order-1"
           >
-            Cancelar
+            {isReadOnly ? 'Voltar' : 'Cancelar'}
           </button>
-          <button
-            type="submit"
-            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition-all font-semibold shadow-lg shadow-blue-900/40 text-lg order-1 sm:order-2"
-          >
-            <Save size={20} />
-            Salvar Contrato
-          </button>
+          {!isReadOnly && (
+            <button
+              type="submit"
+              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition-all font-semibold shadow-lg shadow-blue-900/40 text-lg order-1 sm:order-2"
+            >
+              <Save size={20} />
+              Salvar Contrato
+            </button>
+          )}
         </div>
       </form >
     </div >

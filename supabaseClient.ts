@@ -40,10 +40,18 @@ export const supabaseService = {
     if (!user) throw new Error("Usuário não autenticado");
 
     const isEditing = !!contrato.id;
-    const contractData = {
+    const contractData: any = {
       ...contrato,
       user_id: user.id
     };
+
+    // Converter strings vazias para null em campos de data para evitar erro do Postgres
+    const dateFields = ['data_inicio', 'data_encerramento', 'prazo_execucao', 'data_conclusao_instalacao'];
+    dateFields.forEach(field => {
+      if (contractData[field] === '') {
+        contractData[field] = null;
+      }
+    });
 
     // Remove contatos from contract object if it exists to avoid error on insert/update
     delete contractData.contatos;
