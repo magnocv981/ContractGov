@@ -138,12 +138,12 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
-                      <span className={`text-sm font-medium ${contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() ? 'text-red-500' :
-                        contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) ? 'text-orange-500' : 'text-slate-300'
+                      <span className={`text-sm font-medium ${!['Encerrado', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() ? 'text-red-500' :
+                        !['Encerrado', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) ? 'text-orange-500' : 'text-slate-300'
                         }`}>
                         {contrato.prazo_execucao ? new Date(contrato.prazo_execucao).toLocaleDateString('pt-BR') : 'N/A'}
                       </span>
-                      {contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() && (
+                      {!['Encerrado', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() && (
                         <span className="text-[10px] text-red-500 font-bold uppercase">Atrasado</span>
                       )}
                     </div>
