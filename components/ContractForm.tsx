@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, X, User, CheckCircle, ShieldCheck, Edit2 } from 'lucide-react';
-import { Contrato, Contato, Screen } from '../types';
+import { Plus, Trash2, Save, X, User, CheckCircle, ShieldCheck, Edit2, FilePlus } from 'lucide-react';
+import { Contrato, Contato, Aditivo, Screen } from '../types';
 
 interface ContractFormProps {
   contratoToEdit?: Contrato | null;
-  onSave: (contrato: Contrato, contatos: Contato[]) => void;
+  onSave: (contrato: Contrato, contatos: Contato[], aditivos: Aditivo[]) => void;
   onCancel: () => void;
 }
 
@@ -13,6 +13,8 @@ const ESTADOS = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG',
   'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
 ];
+
+const ADITIVO_TIPOS: ('Valor' | 'Prazo' | 'Valor e Prazo' | 'Outros')[] = ['Valor', 'Prazo', 'Valor e Prazo', 'Outros'];
 
 const formatBRL = (val: number) =>
   new Intl.NumberFormat('pt-BR', {
@@ -47,6 +49,8 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
     { nome: '', email: '', telefone: '' }
   ]);
 
+  const [aditivos, setAditivos] = useState<Aditivo[]>([]);
+
   useEffect(() => {
     if (contratoToEdit) {
       setFormData({
@@ -57,6 +61,9 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
       });
       if (contratoToEdit.contatos && contratoToEdit.contatos.length > 0) {
         setContatos(contratoToEdit.contatos);
+      }
+      if (contratoToEdit.aditivos && contratoToEdit.aditivos.length > 0) {
+        setAditivos(contratoToEdit.aditivos);
       }
     }
   }, [contratoToEdit]);
@@ -98,10 +105,37 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
     }
   };
 
+  const handleAditivoChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    const newAditivos = [...aditivos];
+    newAditivos[index] = {
+      ...newAditivos[index],
+      [name]: name === 'valor_aditivo' ? Number(value) : value
+    };
+    setAditivos(newAditivos);
+  };
+
+  const addAditivo = () => {
+    setAditivos([...aditivos, {
+      contrato_id: contratoToEdit?.id || '',
+      tipo: 'Valor',
+      valor_aditivo: 0,
+      nova_data_encerramento: '',
+      descricao: '',
+      data_assinatura: new Date().toISOString().split('T')[0]
+    }]);
+  };
+
+  const removeAditivo = (index: number) => {
+    setAditivos(aditivos.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData, contatos.filter(c => c.nome.trim() !== ''));
+    onSave(formData, contatos.filter(c => c.nome.trim() !== ''), aditivos);
   };
+
+  const currentTotalValue = formData.valor_global + aditivos.reduce((sum, a) => sum + (a.valor_aditivo || 0), 0);
 
   const inputClasses = "w-full bg-[#0f172a] border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-600";
   const labelClasses = "block text-sm font-medium text-slate-400 mb-1.5";
@@ -173,7 +207,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
           </div>
 
           <div>
-            <label className={labelClasses}>Valor Global (R$)</label>
+            <label className={labelClasses}>Valor Global Base (R$)</label>
             <div className="relative">
               {isReadOnly ? (
                 <div className={`${inputClasses} pl-4 font-mono font-bold text-blue-400 bg-slate-900/50 flex items-center`}>
@@ -195,12 +229,8 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                 </>
               )}
             </div>
-            {!isReadOnly && (
-              <p className="text-[10px] text-slate-500 mt-1">
-                Visualização: <span className="text-blue-400 font-bold">{formatBRL(formData.valor_global || 0)}</span>
-              </p>
-            )}
           </div>
+
           <div>
             <label className={labelClasses}>Status</label>
             <select
@@ -216,6 +246,15 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               <option value="Cancelado">Cancelado</option>
             </select>
           </div>
+
+          {aditivos.length > 0 && (
+            <div className="md:col-span-1 border-l-2 border-emerald-500 pl-4 py-1">
+              <label className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest block mb-1">Valor Total com Aditivos</label>
+              <div className="text-xl font-black text-white font-mono">
+                {formatBRL(currentTotalValue)}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:col-span-2 bg-slate-800/30 p-4 rounded-lg border border-slate-700/50">
             <div className="sm:col-span-2 mb-2">
@@ -299,7 +338,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
             />
           </div>
           <div>
-            <label className={labelClasses}>Data de Encerramento</label>
+            <label className={labelClasses}>Data de Encerramento Base</label>
             <input
               type="date"
               name="data_encerramento"
@@ -353,6 +392,107 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                 disabled={isReadOnly}
               />
             </div>
+          </div>
+        </div>
+
+        {/* Section: Aditivos */}
+        <div className="mt-10 pt-8 border-t border-slate-800">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
+              <FilePlus size={20} />
+              Termos Aditivos (Valor / Prazo)
+            </h3>
+            {!isReadOnly && (
+              <button
+                type="button"
+                onClick={addAditivo}
+                className="flex items-center gap-1.5 text-sm font-medium bg-emerald-600/10 text-emerald-500 hover:bg-emerald-600/20 px-3 py-1.5 rounded-lg transition-all"
+              >
+                <Plus size={16} /> Novo Aditivo
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            {aditivos.length === 0 ? (
+              <div className="text-center py-6 bg-[#0f172a]/20 rounded-xl border border-dashed border-slate-800 text-slate-500 text-sm">
+                Nenhum termo aditivo registrado para este contrato.
+              </div>
+            ) : aditivos.map((aditivo, index) => (
+              <div key={index} className="flex flex-col gap-4 bg-[#0f172a]/50 p-5 rounded-xl border border-emerald-500/20 relative group hover:border-emerald-500/40 transition-all">
+                {!isReadOnly && (
+                  <button
+                    type="button"
+                    onClick={() => removeAditivo(index)}
+                    className="absolute top-4 right-4 p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Tipo de Aditivo</label>
+                    <select
+                      name="tipo"
+                      value={aditivo.tipo}
+                      onChange={(e) => handleAditivoChange(index, e)}
+                      className={inputClasses}
+                      disabled={isReadOnly}
+                    >
+                      {ADITIVO_TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Valor Aditivo (R$)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="valor_aditivo"
+                      value={aditivo.valor_aditivo}
+                      onChange={(e) => handleAditivoChange(index, e)}
+                      placeholder="0,00"
+                      className={`${inputClasses} font-mono font-bold text-emerald-400`}
+                      disabled={isReadOnly}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Nova Data Encerramento</label>
+                    <input
+                      type="date"
+                      name="nova_data_encerramento"
+                      value={aditivo.nova_data_encerramento || ''}
+                      onChange={(e) => handleAditivoChange(index, e)}
+                      className={inputClasses}
+                      disabled={isReadOnly}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Data Assinatura</label>
+                    <input
+                      type="date"
+                      name="data_assinatura"
+                      value={aditivo.data_assinatura ? aditivo.data_assinatura.split('T')[0] : ''}
+                      onChange={(e) => handleAditivoChange(index, e)}
+                      className={inputClasses}
+                      disabled={isReadOnly}
+                    />
+                  </div>
+                  <div className="md:col-span-4">
+                    <label className="text-xs text-slate-500 mb-1 block">Descrição do Aditivo</label>
+                    <textarea
+                      name="descricao"
+                      value={aditivo.descricao || ''}
+                      onChange={(e) => handleAditivoChange(index, e)}
+                      rows={2}
+                      placeholder="Descreva o motivo ou detalhes do aditivo..."
+                      className={inputClasses}
+                      disabled={isReadOnly}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

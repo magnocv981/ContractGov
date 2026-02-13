@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { LayoutDashboard, FileText, Menu, X, LogOut, Bell, Loader2, ShieldCheck, User } from 'lucide-react';
-import { Contrato, Contato, Screen, Profile } from './types';
+import { Contrato, Contato, Aditivo, Screen, Profile } from './types';
 import { supabase, supabaseService } from './supabaseClient';
 import { Session } from '@supabase/supabase-js';
 
@@ -73,9 +73,9 @@ const App: React.FC = () => {
     await supabase.auth.signOut();
   };
 
-  const handleSaveContract = async (contrato: Contrato, contatos: Contato[]) => {
+  const handleSaveContract = async (contrato: Contrato, contatos: Contato[], aditivos: Aditivo[]) => {
     try {
-      await supabaseService.upsertContrato(contrato, contatos);
+      await supabaseService.upsertContrato(contrato, contatos, aditivos);
       await loadData();
       setCurrentScreen(Screen.List);
       setEditingContrato(null);

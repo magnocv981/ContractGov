@@ -7,6 +7,17 @@ export interface Contato {
   telefone: string;
 }
 
+export interface Aditivo {
+  id?: string;
+  contrato_id: string;
+  tipo: 'Valor' | 'Prazo' | 'Valor e Prazo' | 'Outros';
+  valor_aditivo: number;
+  nova_data_encerramento?: string;
+  descricao?: string;
+  data_assinatura?: string;
+  created_at?: string;
+}
+
 export interface Contrato {
   id?: string;
   cliente_orgao: string;
@@ -25,6 +36,7 @@ export interface Contrato {
   data_conclusao_instalacao?: string; // Data de conclusão da instalação (início da garantia)
   prazo_garantia_dias?: number;       // Prazo de garantia em dias
   contatos?: Contato[];
+  aditivos?: Aditivo[]; // Novo campo: aditivos contratuais
 }
 
 export type UserRole = 'admin' | 'user';

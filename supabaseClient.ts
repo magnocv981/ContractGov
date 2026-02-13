@@ -1,6 +1,5 @@
-
 import { createClient } from '@supabase/supabase-js';
-import { Contrato, Contato, Profile } from './types';
+import { Contrato, Contato, Profile, Aditivo } from './types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -28,14 +27,14 @@ export const supabaseService = {
 
     const { data, error } = await supabase
       .from('contratos')
-      .select('*, contatos(*)')
+      .select('*, contatos(*), aditivos(*)')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data as Contrato[];
   },
 
-  upsertContrato: async (contrato: Contrato, contatos: Contato[]): Promise<void> => {
+  upsertContrato: async (contrato: Contrato, contatos: Contato[], aditivos: Aditivo[] = []): Promise<void> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Usuário não autenticado");
 
@@ -53,8 +52,9 @@ export const supabaseService = {
       }
     });
 
-    // Remove contatos from contract object if it exists to avoid error on insert/update
+    // Remove relations from contract object if it exists to avoid error on insert/update
     delete contractData.contatos;
+    delete contractData.aditivos;
 
     let contractId = contrato.id;
 
@@ -74,7 +74,7 @@ export const supabaseService = {
       contractId = data.id;
     }
 
-    // Handle Contacts: Delete existing and re-insert (simple approach for MVP)
+    // Handle Contacts: Delete existing and re-insert
     if (isEditing) {
       const { error: deleteError } = await supabase
         .from('contatos')
@@ -94,6 +94,30 @@ export const supabaseService = {
         .from('contatos')
         .insert(contactsToInsert);
       if (contactsError) throw contactsError;
+    }
+
+    // Handle Aditivos: Delete existing and re-insert
+    if (isEditing) {
+      const { error: deleteAditivosError } = await supabase
+        .from('aditivos')
+        .delete()
+        .eq('contrato_id', contractId);
+      if (deleteAditivosError) throw deleteAditivosError;
+    }
+
+    if (aditivos.length > 0) {
+      const aditivosToInsert = aditivos.map(a => ({
+        tipo: a.tipo,
+        valor_aditivo: a.valor_aditivo,
+        nova_data_encerramento: a.nova_data_encerramento === '' ? null : a.nova_data_encerramento,
+        descricao: a.descricao,
+        data_assinatura: a.data_assinatura === '' ? null : (a.data_assinatura || new Date().toISOString().split('T')[0]),
+        contrato_id: contractId
+      }));
+      const { error: aditivosError } = await supabase
+        .from('aditivos')
+        .insert(aditivosToInsert);
+      if (aditivosError) throw aditivosError;
     }
   },
 

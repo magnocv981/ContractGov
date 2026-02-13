@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Edit2, Trash2, Search, Filter, LayoutGrid } from 'lucide-react';
+import { Edit2, Trash2, Search, Filter, LayoutGrid, FilePlus } from 'lucide-react';
 import { Contrato, Screen } from '../types';
 
 interface ContractListProps {
@@ -20,6 +20,22 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+
+  const getUpdatedContractData = (contrato: Contrato) => {
+    let valorGlobal = Number(contrato.valor_global);
+    let dataFim = contrato.data_encerramento;
+
+    if (contrato.aditivos && contrato.aditivos.length > 0) {
+      contrato.aditivos.forEach(a => {
+        valorGlobal += Number(a.valor_aditivo || 0);
+        if (a.nova_data_encerramento && (!dataFim || new Date(a.nova_data_encerramento) > new Date(dataFim))) {
+          dataFim = a.nova_data_encerramento;
+        }
+      });
+    }
+
+    return { valorGlobal, dataFim };
+  };
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -98,7 +114,7 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
               <tr>
                 <th className="px-6 py-4">Cliente / Órgão</th>
                 <th className="px-6 py-4">UF</th>
-                <th className="px-6 py-4">Valor</th>
+                <th className="px-6 py-4">Valor Total</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Instalados / Total</th>
                 <th className="px-6 py-4">Prazo Execução</th>
@@ -107,70 +123,83 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
-              {filteredContratos.length > 0 ? filteredContratos.map((contrato) => (
-                <tr
-                  key={contrato.id}
-                  className="hover:bg-slate-800/60 transition-colors cursor-pointer group"
-                  onClick={() => onEdit(contrato)}
-                >
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-white group-hover:text-blue-400 transition-colors">{contrato.cliente_orgao}</div>
-                    <div className="text-xs text-slate-500 truncate max-w-xs">{contrato.objeto_contrato || 'Sem descrição'}</div>
-                  </td>
-                  <td className="px-6 py-4 text-slate-300 font-mono">{contrato.estado}</td>
-                  <td className="px-6 py-4 font-semibold text-blue-400">{formatCurrency(contrato.valor_global)}</td>
-                  <td className="px-6 py-4">{getStatusBadge(contrato.status)}</td>
-                  <td className="px-6 py-4">
-                    <div className="text-xs space-y-1">
-                      <div className="flex justify-between w-40">
-                        <span className="text-slate-500">Elevadores:</span>
-                        <span className="text-white font-medium">
-                          <span className="text-green-500">{contrato.instalados_elevadores || 0}</span> / {contrato.qtde_elevadores}
-                        </span>
+              {filteredContratos.length > 0 ? filteredContratos.map((contrato) => {
+                const { valorGlobal, dataFim } = getUpdatedContractData(contrato);
+                const hasAditivos = contrato.aditivos && contrato.aditivos.length > 0;
+
+                return (
+                  <tr
+                    key={contrato.id}
+                    className="hover:bg-slate-800/60 transition-colors cursor-pointer group"
+                    onClick={() => onEdit(contrato)}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium text-white group-hover:text-blue-400 transition-colors">{contrato.cliente_orgao}</div>
+                        {hasAditivos && <FilePlus size={14} className="text-emerald-500" title="Possui termos aditivos" />}
                       </div>
-                      <div className="flex justify-between w-40">
-                        <span className="text-slate-500">Plataformas:</span>
-                        <span className="text-white font-medium">
-                          <span className="text-green-500">{contrato.instalados_plataformas || 0}</span> / {contrato.qtde_plataformas}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col">
-                      <span className={`text-sm font-medium ${!['Encerrado', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() ? 'text-red-500' :
-                        !['Encerrado', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) ? 'text-orange-500' : 'text-slate-300'
-                        }`}>
-                        {contrato.prazo_execucao ? new Date(contrato.prazo_execucao).toLocaleDateString('pt-BR') : 'N/A'}
-                      </span>
-                      {!['Encerrado', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() && (
-                        <span className="text-[10px] text-red-500 font-bold uppercase">Atrasado</span>
+                      <div className="text-xs text-slate-500 truncate max-w-xs">{contrato.objeto_contrato || 'Sem descrição'}</div>
+                    </td>
+                    <td className="px-6 py-4 text-slate-300 font-mono">{contrato.estado}</td>
+                    <td className="px-6 py-4 font-semibold text-blue-400">
+                      <div>{formatCurrency(valorGlobal)}</div>
+                      {hasAditivos && (
+                        <div className="text-[9px] text-emerald-500 mt-0.5 uppercase font-bold tracking-tighter">Com aditivos</div>
                       )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {getWarrantyBadge(contrato)}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onEdit(contrato); }}
-                        className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
-                        title="Editar"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); contrato.id && onDelete(contrato.id); }}
-                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                        title="Excluir"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )) : (
+                    </td>
+                    <td className="px-6 py-4">{getStatusBadge(contrato.status)}</td>
+                    <td className="px-6 py-4">
+                      <div className="text-xs space-y-1">
+                        <div className="flex justify-between w-40">
+                          <span className="text-slate-500">Elevadores:</span>
+                          <span className="text-white font-medium">
+                            <span className="text-green-500">{contrato.instalados_elevadores || 0}</span> / {contrato.qtde_elevadores}
+                          </span>
+                        </div>
+                        <div className="flex justify-between w-40">
+                          <span className="text-slate-500">Plataformas:</span>
+                          <span className="text-white font-medium">
+                            <span className="text-green-500">{contrato.instalados_plataformas || 0}</span> / {contrato.qtde_plataformas}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className={`text-sm font-medium ${!['Encerrado', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() ? 'text-red-500' :
+                          !['Encerrado', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) ? 'text-orange-500' : 'text-slate-300'
+                          }`}>
+                          {contrato.prazo_execucao ? new Date(contrato.prazo_execucao).toLocaleDateString('pt-BR') : 'N/A'}
+                        </span>
+                        {!['Encerrado', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() && (
+                          <span className="text-[10px] text-red-500 font-bold uppercase">Atrasado</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {getWarrantyBadge(contrato)}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onEdit(contrato); }}
+                          className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
+                          title="Editar"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); contrato.id && onDelete(contrato.id); }}
+                          className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                          title="Excluir"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              }) : (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
                     Nenhum contrato encontrado.
@@ -183,46 +212,54 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
 
         {/* Mobile View: Card-based layout */}
         <div className="md:hidden divide-y divide-slate-800">
-          {filteredContratos.length > 0 ? filteredContratos.map((contrato) => (
-            <div
-              key={contrato.id}
-              onClick={() => onEdit(contrato)}
-              className="p-4 active:bg-slate-800 transition-colors flex items-center justify-between gap-4 cursor-pointer"
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="text-white font-bold truncate">{contrato.cliente_orgao}</h3>
-                  <span className="text-slate-500 text-xs font-mono font-bold ml-2">{contrato.estado}</span>
+          {filteredContratos.length > 0 ? filteredContratos.map((contrato) => {
+            const { valorGlobal } = getUpdatedContractData(contrato);
+            const hasAditivos = contrato.aditivos && contrato.aditivos.length > 0;
+
+            return (
+              <div
+                key={contrato.id}
+                onClick={() => onEdit(contrato)}
+                className="p-4 active:bg-slate-800 transition-colors flex items-center justify-between gap-4 cursor-pointer"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2 truncate">
+                      <h3 className="text-white font-bold truncate">{contrato.cliente_orgao}</h3>
+                      {hasAditivos && <FilePlus size={12} className="text-emerald-500 shrink-0" />}
+                    </div>
+                    <span className="text-slate-500 text-xs font-mono font-bold ml-2">{contrato.estado}</span>
+                  </div>
+                  <div className="text-xs text-slate-400 truncate mb-2">
+                    {contrato.objeto_contrato || 'Sem descrição'}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-blue-400 font-bold text-sm">
+                      {formatCurrency(valorGlobal)}
+                    </span>
+                    {getStatusBadge(contrato.status)}
+                  </div>
                 </div>
-                <div className="text-xs text-slate-400 truncate mb-2">
-                  {contrato.objeto_contrato || 'Sem descrição'}
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-blue-400 font-bold text-sm">
-                    {formatCurrency(contrato.valor_global)}
-                  </span>
-                  {getStatusBadge(contrato.status)}
+                <div className="flex flex-col items-end gap-2">
+                  <div className="text-[10px] text-slate-500 flex flex-col items-end">
+                    <span className="flex gap-1 items-center">
+                      <span className="text-green-500 font-bold">{contrato.instalados_elevadores || 0 + (contrato.instalados_plataformas || 0)}</span>
+                      / {contrato.qtde_elevadores + contrato.qtde_plataformas} un
+                    </span>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      contrato.id && onDelete(contrato.id);
+                    }}
+                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-2">
-                <div className="text-[10px] text-slate-500 flex flex-col items-end">
-                  <span className="flex gap-1 items-center">
-                    <span className="text-green-500 font-bold">{contrato.instalados_elevadores || 0 + (contrato.instalados_plataformas || 0)}</span>
-                    / {contrato.qtde_elevadores + contrato.qtde_plataformas} un
-                  </span>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    contrato.id && onDelete(contrato.id);
-                  }}
-                  className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            </div>
-          )) : (
+            );
+          }) : (
             <div className="px-6 py-12 text-center text-slate-500">
               Nenhum contrato encontrado.
             </div>

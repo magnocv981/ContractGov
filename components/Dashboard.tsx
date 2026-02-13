@@ -81,16 +81,24 @@ const Dashboard: React.FC<DashboardProps> = ({ contratos, onNavigate }) => {
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth();
 
+    const getUpdatedValue = (c: Contrato) => {
+      let val = Number(c.valor_global);
+      if (c.aditivos) {
+        c.aditivos.forEach(a => val += Number(a.valor_aditivo || 0));
+      }
+      return val;
+    };
+
     const salesYear = contratos
       .filter(c => new Date(c.data_inicio).getFullYear() === currentYear)
-      .reduce((sum, c) => sum + Number(c.valor_global), 0);
+      .reduce((sum, c) => sum + getUpdatedValue(c), 0);
 
     const salesMonth = contratos
       .filter(c => {
         const d = new Date(c.data_inicio);
         return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
       })
-      .reduce((sum, c) => sum + Number(c.valor_global), 0);
+      .reduce((sum, c) => sum + getUpdatedValue(c), 0);
 
     // Totais de equipamentos contratados (Vendido)
     const totalElevatorsContracted = contratos.reduce((sum, c) => sum + Number(c.qtde_elevadores || 0), 0);
@@ -100,7 +108,7 @@ const Dashboard: React.FC<DashboardProps> = ({ contratos, onNavigate }) => {
     const totalElevatorsInstalled = contratos.reduce((sum, c) => sum + Number(c.instalados_elevadores || 0), 0);
     const totalPlatformsInstalled = contratos.reduce((sum, c) => sum + Number(c.instalados_plataformas || 0), 0);
 
-    const globalSales = contratos.reduce((sum, c) => sum + Number(c.valor_global), 0);
+    const globalSales = contratos.reduce((sum, c) => sum + getUpdatedValue(c), 0);
     const active = contratos.filter(c => c.status === 'Ativo').length;
     const pending = contratos.filter(c => c.status === 'Pendente').length;
 
@@ -131,7 +139,7 @@ const Dashboard: React.FC<DashboardProps> = ({ contratos, onNavigate }) => {
         acc[c.estado] = { count: 0, sales: 0, elevators: 0, platforms: 0, inst_elevators: 0, inst_platforms: 0 };
       }
       acc[c.estado].count += 1;
-      acc[c.estado].sales += Number(c.valor_global);
+      acc[c.estado].sales += getUpdatedValue(c);
       acc[c.estado].elevators += Number(c.qtde_elevadores || 0);
       acc[c.estado].platforms += Number(c.qtde_plataformas || 0);
       acc[c.estado].inst_elevators += Number(c.instalados_elevadores || 0);
