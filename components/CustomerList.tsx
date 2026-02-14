@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit2, Trash2, Search, Filter, Users, Phone, Mail, Building2 } from 'lucide-react';
+import { Edit2, Trash2, Search, Filter, Users, Phone, Mail, Building2, FilePlus } from 'lucide-react';
 import { Cliente } from '../types';
 
 interface CustomerListProps {
@@ -7,9 +7,10 @@ interface CustomerListProps {
     onEdit: (cliente: Cliente) => void;
     onDelete: (id: string) => void;
     onNew: () => void;
+    onNewContract: (cliente: Cliente) => void;
 }
 
-const CustomerList: React.FC<CustomerListProps> = ({ clientes, onEdit, onDelete, onNew }) => {
+const CustomerList: React.FC<CustomerListProps> = ({ clientes, onEdit, onDelete, onNew, onNewContract }) => {
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredClientes = clientes.filter(c =>
@@ -94,16 +95,23 @@ const CustomerList: React.FC<CustomerListProps> = ({ clientes, onEdit, onDelete,
                                     <td className="px-6 py-4 text-center">
                                         <div className="flex items-center justify-center gap-2">
                                             <button
+                                                onClick={(e) => { e.stopPropagation(); onNewContract(cliente); }}
+                                                className="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                                                title="Novo Contrato para este cliente"
+                                            >
+                                                <FilePlus size={18} />
+                                            </button>
+                                            <button
                                                 onClick={(e) => { e.stopPropagation(); onEdit(cliente); }}
                                                 className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
-                                                title="Editar"
+                                                title="Editar Cliente"
                                             >
                                                 <Edit2 size={18} />
                                             </button>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); cliente.id && onDelete(cliente.id); }}
                                                 className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                title="Excluir"
+                                                title="Excluir Cliente"
                                             >
                                                 <Trash2 size={18} />
                                             </button>
