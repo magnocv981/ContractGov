@@ -109,12 +109,34 @@ const App: React.FC = () => {
     setCurrentScreen(Screen.Form);
   };
 
-  const handleSaveCustomer = async (cliente: Cliente) => {
+  const handleSaveCustomer = async (cliente: Cliente, createContract = false) => {
     try {
-      await supabaseService.upsertCliente(cliente);
+      const clienteId = await supabaseService.upsertCliente(cliente);
       await loadData();
-      setCurrentScreen(Screen.Customers);
-      setEditingCliente(null);
+
+      if (createContract) {
+        setEditingContrato({
+          cliente_id: clienteId,
+          cliente_orgao: cliente.nome,
+          cnpj: cliente.cnpj,
+          estado: '',
+          valor_global: 0,
+          status: 'Pendente',
+          qtde_plataformas: 0,
+          qtde_elevadores: 0,
+          instalados_plataformas: 0,
+          instalados_elevadores: 0,
+          objeto_contrato: '',
+          data_inicio: new Date().toISOString().split('T')[0],
+          data_encerramento: '',
+          prazo_execucao: ''
+        } as Contrato);
+        setCurrentScreen(Screen.Form);
+        setEditingCliente(null);
+      } else {
+        setCurrentScreen(Screen.Customers);
+        setEditingCliente(null);
+      }
     } catch (error) {
       alert("Erro ao salvar cliente.");
       console.error(error);

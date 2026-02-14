@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Users, Building2, MapPin, Phone, Mail, MessageSquare } from 'lucide-react';
+import { Save, Users, Building2, MapPin, Phone, Mail, MessageSquare, FilePlus } from 'lucide-react';
 import { Cliente } from '../types';
 
 interface CustomerFormProps {
     cliente?: Cliente;
-    onSave: (cliente: Cliente) => void;
+    onSave: (cliente: Cliente, createContract?: boolean) => void;
     onCancel: () => void;
 }
 
@@ -31,9 +31,9 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ cliente, onSave, onCancel }
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent, createContract = false) => {
         e.preventDefault();
-        onSave(formData);
+        onSave(formData, createContract);
     };
 
     const inputClasses = "w-full bg-[#0f172a] border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-slate-600";
@@ -141,13 +141,21 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ cliente, onSave, onCancel }
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="px-6 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-center order-2 sm:order-1"
+                        className="px-6 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-center order-3 sm:order-1"
                     >
                         Cancelar
                     </button>
                     <button
+                        type="button"
+                        onClick={(e) => handleSubmit(e as any, true)}
+                        className="flex items-center justify-center gap-2 bg-emerald-600/10 text-emerald-500 hover:bg-emerald-600/20 px-6 py-3 rounded-lg transition-all font-semibold border border-emerald-500/20 order-2"
+                    >
+                        <FilePlus size={20} />
+                        Salvar e Criar Contrato
+                    </button>
+                    <button
                         type="submit"
-                        className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition-all font-semibold shadow-lg shadow-blue-900/40 text-lg order-1 sm:order-2"
+                        className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition-all font-semibold shadow-lg shadow-blue-900/40 order-1 sm:order-3"
                     >
                         <Save size={20} />
                         Salvar Cliente
