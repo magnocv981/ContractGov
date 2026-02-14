@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, X, User, CheckCircle, ShieldCheck, Edit2, FilePlus } from 'lucide-react';
-import { Contrato, Contato, Aditivo, Screen } from '../types';
+import { Plus, Trash2, Save, X, User, CheckCircle, ShieldCheck, Edit2, FilePlus, Users } from 'lucide-react';
+import { Contrato, Contato, Aditivo, Screen, Cliente } from '../types';
+import { supabaseService } from '../supabaseClient';
 
 interface ContractFormProps {
   contratoToEdit?: Contrato | null;
@@ -50,6 +51,19 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
   ]);
 
   const [aditivos, setAditivos] = useState<Aditivo[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+
+  useEffect(() => {
+    const fetchClientes = async () => {
+      try {
+        const data = await supabaseService.getClientes();
+        setClientes(data);
+      } catch (err) {
+        console.error('Erro ao carregar clientes:', err);
+      }
+    };
+    fetchClientes();
+  }, []);
 
   useEffect(() => {
     if (contratoToEdit) {
@@ -130,6 +144,18 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
     setAditivos(aditivos.filter((_, i) => i !== index));
   };
 
+  const handleClienteChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const clienteId = e.target.value;
+    const selectedCliente = clientes.find(c => c.id === clienteId);
+
+    setFormData(prev => ({
+      ...prev,
+      cliente_id: clienteId,
+      cliente_orgao: selectedCliente ? selectedCliente.nome : prev.cliente_orgao,
+      cnpj: selectedCliente && selectedCliente.cnpj ? selectedCliente.cnpj : prev.cnpj
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData, contatos.filter(c => c.nome.trim() !== ''), aditivos);
@@ -163,35 +189,26 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="md:col-span-1">
-            <label className={labelClasses}>Cliente / Órgão</label>
-            <input
-              type="text"
-              name="cliente_orgao"
-              value={formData.cliente_orgao}
-              onChange={handleChange}
-              placeholder="Ex: Secretaria de Educação"
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <label className={labelClasses}>
+              <Users size={16} className="inline mr-2" /> Vincular Cliente Cadastrado (Opcional)
+            </label>
+            <select
+              name="cliente_id"
+              value={formData.cliente_id || ''}
+              onChange={handleClienteChange}
               className={inputClasses}
-              required
-              autoComplete="off"
               disabled={isReadOnly}
-            />
+            >
+              <option value="">-- Selecione um cliente ou digite abaixo --</option>
+              {clientes.map(c => (
+                <option key={c.id} value={c.id}>{c.nome} ({c.cnpj})</option>
+              ))}
+            </select>
           </div>
-          <div className="md:col-span-1">
-            <label className={labelClasses}>CNPJ</label>
-            <input
-              type="text"
-              name="cnpj"
-              value={formData.cnpj || ''}
-              onChange={handleChange}
-              placeholder="00.000.000/0000-00"
-              className={inputClasses}
-              autoComplete="off"
-              disabled={isReadOnly}
-            />
-          </div>
-          <div>
+
+          <div className="lg:col-span-1">
             <label className={labelClasses}>Estado</label>
             <select
               name="estado"
@@ -204,6 +221,35 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               <option value="">Selecione o estado</option>
               {ESTADOS.map(uf => <option key={uf} value={uf}>{uf}</option>)}
             </select>
+          </div>
+
+          <div className="md:col-span-1">
+            <label className={labelClasses}>Cliente / Órgão Público</label>
+            <input
+              type="text"
+              name="cliente_orgao"
+              value={formData.cliente_orgao}
+              onChange={handleChange}
+              placeholder="Ex: Secretaria de Educação"
+              className={inputClasses}
+              required
+              autoComplete="off"
+              disabled={isReadOnly}
+            />
+          </div>
+
+          <div className="md:col-span-1">
+            <label className={labelClasses}>CNPJ</label>
+            <input
+              type="text"
+              name="cnpj"
+              value={formData.cnpj || ''}
+              onChange={handleChange}
+              placeholder="00.000.000/0000-00"
+              className={inputClasses}
+              autoComplete="off"
+              disabled={isReadOnly}
+            />
           </div>
 
           <div>

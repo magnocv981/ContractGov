@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Contrato, Contato, Profile, Aditivo } from './types';
+import { Contrato, Contato, Profile, Aditivo, Cliente } from './types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -7,6 +7,51 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const supabaseService = {
+  // Clientes
+  async getClientes(): Promise<Cliente[]> {
+    const { data, error } = await supabase
+      .from('clientes')
+      .select('*')
+      .order('nome');
+    if (error) throw error;
+    return data || [];
+  },
+
+  async upsertCliente(cliente: Cliente): Promise<string> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Usuário não autenticado');
+
+    const clienteData = {
+      ...cliente,
+      user_id: user.id
+    };
+
+    if (cliente.id) {
+      const { error } = await supabase
+        .from('clientes')
+        .update(clienteData)
+        .eq('id', cliente.id);
+      if (error) throw error;
+      return cliente.id;
+    } else {
+      const { data, error } = await supabase
+        .from('clientes')
+        .insert(clienteData)
+        .select()
+        .single();
+      if (error) throw error;
+      return data.id;
+    }
+  },
+
+  async deleteCliente(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('clientes')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  },
+
   getProfile: async (): Promise<Profile> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Usuário não autenticado");
@@ -27,11 +72,15 @@ export const supabaseService = {
 
     const { data, error } = await supabase
       .from('contratos')
-      .select('*, contatos(*), aditivos(*)')
+      .select('*, contatos(*), aditivos(*), clientes(*)')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data as Contrato[];
+    // Map 'clientes' to 'cliente' object in Contrato interface
+    return (data || []).map(c => ({
+      ...c,
+      cliente: c.clientes
+    })) as Contrato[];
   },
 
   upsertContrato: async (contrato: Contrato, contatos: Contato[], aditivos: Aditivo[] = []): Promise<void> => {
@@ -55,6 +104,8 @@ export const supabaseService = {
     // Remove relations from contract object if it exists to avoid error on insert/update
     delete contractData.contatos;
     delete contractData.aditivos;
+    delete contractData.cliente;
+    delete contractData.clientes;
 
     let contractId = contrato.id;
 

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { LayoutDashboard, FileText, Menu, X, LogOut, Bell, Loader2, ShieldCheck, User } from 'lucide-react';
-import { Contrato, Contato, Aditivo, Screen, Profile } from './types';
+import { LayoutDashboard, FileText, Menu, X, LogOut, Bell, Loader2, ShieldCheck, User, Users, Building2 } from 'lucide-react';
+import { Contrato, Contato, Aditivo, Screen, Profile, Cliente } from './types';
 import { supabase, supabaseService } from './supabaseClient';
 import { Session } from '@supabase/supabase-js';
 
@@ -10,12 +10,16 @@ const Dashboard = lazy(() => import('./components/Dashboard'));
 const ContractForm = lazy(() => import('./components/ContractForm'));
 const ContractList = lazy(() => import('./components/ContractList'));
 const Auth = lazy(() => import('./components/Auth'));
+const CustomerList = lazy(() => import('./components/CustomerList'));
+const CustomerForm = lazy(() => import('./components/CustomerForm'));
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [currentScreen, setCurrentScreen] = useState<Screen>(Screen.Dashboard);
   const [contratos, setContratos] = useState<Contrato[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [editingContrato, setEditingContrato] = useState<Contrato | null>(null);
+  const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -60,10 +64,14 @@ const App: React.FC = () => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const data = await supabaseService.getContratos();
-      setContratos(data);
+      const [contratosData, clientesData] = await Promise.all([
+        supabaseService.getContratos(),
+        supabaseService.getClientes()
+      ]);
+      setContratos(contratosData);
+      setClientes(clientesData);
     } catch (error) {
-      console.error("Erro ao carregar contratos:", error);
+      console.error("Erro ao carregar dados:", error);
     } finally {
       setIsLoading(false);
     }
@@ -101,6 +109,34 @@ const App: React.FC = () => {
     setCurrentScreen(Screen.Form);
   };
 
+  const handleSaveCustomer = async (cliente: Cliente) => {
+    try {
+      await supabaseService.upsertCliente(cliente);
+      await loadData();
+      setCurrentScreen(Screen.Customers);
+      setEditingCliente(null);
+    } catch (error) {
+      alert("Erro ao salvar cliente.");
+      console.error(error);
+    }
+  };
+
+  const handleDeleteCustomer = async (id: string) => {
+    if (confirm("Tem certeza que deseja excluir este cliente? Todos os contratos vinculados deixarão de ter referência a ele.")) {
+      try {
+        await supabaseService.deleteCliente(id);
+        await loadData();
+      } catch (error) {
+        console.error("Erro ao excluir cliente:", error);
+      }
+    }
+  };
+
+  const handleEditCustomer = (cliente: Cliente) => {
+    setEditingCliente(cliente);
+    setCurrentScreen(Screen.CustomerForm);
+  };
+
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -128,6 +164,23 @@ const App: React.FC = () => {
             contratoToEdit={editingContrato}
             onSave={handleSaveContract}
             onCancel={() => { setEditingContrato(null); setCurrentScreen(Screen.List); }}
+          />
+        );
+      case Screen.Customers:
+        return (
+          <CustomerList
+            clientes={clientes}
+            onEdit={handleEditCustomer}
+            onDelete={handleDeleteCustomer}
+            onNew={() => { setEditingCliente(null); setCurrentScreen(Screen.CustomerForm); }}
+          />
+        );
+      case Screen.CustomerForm:
+        return (
+          <CustomerForm
+            cliente={editingCliente || undefined}
+            onSave={handleSaveCustomer}
+            onCancel={() => { setEditingCliente(null); setCurrentScreen(Screen.Customers); }}
           />
         );
       default:
@@ -165,6 +218,7 @@ const App: React.FC = () => {
 
         <nav className="flex-1 space-y-2">
           <NavItem screen={Screen.Dashboard} icon={<LayoutDashboard size={20} />} label="Dashboard" />
+          <NavItem screen={Screen.Customers} icon={<Users size={20} />} label="Clientes" />
           <NavItem screen={Screen.List} icon={<FileText size={20} />} label={profile?.role === 'admin' ? "Todos os Contratos" : "Meus Contratos"} />
         </nav>
 
@@ -194,6 +248,7 @@ const App: React.FC = () => {
             </div>
             <nav className="space-y-2">
               <NavItem screen={Screen.Dashboard} icon={<LayoutDashboard size={20} />} label="Dashboard" />
+              <NavItem screen={Screen.Customers} icon={<Users size={20} />} label="Clientes" />
               <NavItem screen={Screen.List} icon={<FileText size={20} />} label={profile?.role === 'admin' ? "Todos os Contratos" : "Contratos"} />
             </nav>
             <div className="pt-6 border-t border-slate-800">
@@ -224,6 +279,8 @@ const App: React.FC = () => {
               {currentScreen === Screen.Dashboard && "Página Inicial"}
               {currentScreen === Screen.List && "Lista de Contratos"}
               {currentScreen === Screen.Form && "Formulário de Contrato"}
+              {currentScreen === Screen.Customers && "Gestão de Clientes"}
+              {currentScreen === Screen.CustomerForm && "Cadastro de Cliente"}
             </div>
           </div>
 

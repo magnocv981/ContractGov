@@ -7,6 +7,17 @@ export interface Contato {
   telefone: string;
 }
 
+export interface Cliente {
+  id?: string;
+  nome: string;
+  cnpj: string;
+  endereco?: string;
+  telefone?: string;
+  whatsapp?: string;
+  email?: string;
+  created_at?: string;
+}
+
 export interface Aditivo {
   id?: string;
   contrato_id: string;
@@ -20,23 +31,25 @@ export interface Aditivo {
 
 export interface Contrato {
   id?: string;
+  cliente_id?: string; // Novo campo
   cliente_orgao: string;
-  cnpj: string; // Novo campo
+  cnpj: string;
   estado: string;
   valor_global: number;
   status: 'Ativo' | 'Pendente' | 'Encerrado' | 'Cancelado';
   qtde_plataformas: number;
   qtde_elevadores: number;
-  instalados_plataformas: number; // Novo campo: unidades instaladas
-  instalados_elevadores: number;   // Novo campo: unidades instaladas
+  instalados_plataformas: number;
+  instalados_elevadores: number;
   objeto_contrato: string;
   data_inicio: string;
   data_encerramento: string;
-  prazo_execucao: string; // Novo campo: prazo para execução/instalação
-  data_conclusao_instalacao?: string; // Data de conclusão da instalação (início da garantia)
-  prazo_garantia_dias?: number;       // Prazo de garantia em dias
+  prazo_execucao: string;
+  data_conclusao_instalacao?: string;
+  prazo_garantia_dias?: number;
   contatos?: Contato[];
-  aditivos?: Aditivo[]; // Novo campo: aditivos contratuais
+  aditivos?: Aditivo[];
+  cliente?: Cliente; // Novo campo: relação com cliente
 }
 
 export type UserRole = 'admin' | 'user';
@@ -51,5 +64,7 @@ export interface Profile {
 export enum Screen {
   Dashboard = 'DASHBOARD',
   List = 'LIST',
-  Form = 'FORM'
+  Form = 'FORM',
+  Customers = 'CUSTOMERS',
+  CustomerForm = 'CUSTOMER_FORM'
 }
