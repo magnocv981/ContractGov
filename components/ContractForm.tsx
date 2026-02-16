@@ -152,7 +152,15 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
       ...prev,
       cliente_id: clienteId,
       cliente_orgao: selectedCliente ? selectedCliente.nome : prev.cliente_orgao,
-      cnpj: selectedCliente && selectedCliente.cnpj ? selectedCliente.cnpj : prev.cnpj
+      cnpj: selectedCliente && selectedCliente.cnpj ? selectedCliente.cnpj : prev.cnpj,
+      estado: selectedCliente ? (selectedCliente.endereco_estado || '') : prev.estado,
+      endereco_instalacao: selectedCliente ? [
+        selectedCliente.endereco,
+        selectedCliente.endereco_numero ? `Nº ${selectedCliente.endereco_numero}` : '',
+        selectedCliente.endereco_bairro,
+        selectedCliente.endereco_cidade,
+        selectedCliente.endereco_estado
+      ].filter(Boolean).join(', ') : prev.endereco_instalacao
     }));
   };
 
