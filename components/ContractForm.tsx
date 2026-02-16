@@ -45,11 +45,6 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
   });
 
   const [isReadOnly, setIsReadOnly] = useState(!!contratoToEdit?.id);
-
-  const [contatos, setContatos] = useState<Contato[]>([
-    { nome: '', email: '', telefone: '' }
-  ]);
-
   const [aditivos, setAditivos] = useState<Aditivo[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
 
@@ -73,9 +68,6 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
         instalados_plataformas: contratoToEdit.instalados_plataformas || 0,
         instalados_elevadores: contratoToEdit.instalados_elevadores || 0
       });
-      if (contratoToEdit.contatos && contratoToEdit.contatos.length > 0) {
-        setContatos(contratoToEdit.contatos);
-      }
       if (contratoToEdit.aditivos && contratoToEdit.aditivos.length > 0) {
         setAditivos(contratoToEdit.aditivos);
       }
@@ -100,23 +92,6 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
         ? Number(value)
         : value
     }));
-  };
-
-  const handleContactChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const newContatos = [...contatos];
-    newContatos[index] = { ...newContatos[index], [name]: value };
-    setContatos(newContatos);
-  };
-
-  const addContact = () => {
-    setContatos([...contatos, { nome: '', email: '', telefone: '' }]);
-  };
-
-  const removeContact = (index: number) => {
-    if (contatos.length > 1) {
-      setContatos(contatos.filter((_, i) => i !== index));
-    }
   };
 
   const handleAditivoChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -166,7 +141,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData, contatos.filter(c => c.nome.trim() !== ''), aditivos);
+    onSave(formData, [], aditivos);
   };
 
   const currentTotalValue = formData.valor_global + aditivos.reduce((sum, a) => sum + (a.valor_aditivo || 0), 0);
@@ -637,79 +612,6 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
                       onChange={(e) => handleAditivoChange(index, e)}
                       rows={2}
                       placeholder="Descreva o motivo ou detalhes do aditivo..."
-                      className={inputClasses}
-                      disabled={isReadOnly}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-10 pt-8 border-t border-slate-800">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-blue-400 flex items-center gap-2">
-              <User size={20} />
-              Contatos Vinculados
-            </h3>
-            {!isReadOnly && (
-              <button
-                type="button"
-                onClick={addContact}
-                className="flex items-center gap-1.5 text-sm font-medium bg-green-600/10 text-green-500 hover:bg-green-600/20 px-3 py-1.5 rounded-lg transition-all"
-              >
-                <Plus size={16} /> Adicionar Contato
-              </button>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            {contatos.map((contato, index) => (
-              <div key={index} className="flex flex-col gap-4 bg-[#0f172a]/50 p-4 rounded-xl border border-slate-800/50 relative">
-                {!isReadOnly && (
-                  <button
-                    type="button"
-                    onClick={() => removeContact(index)}
-                    className="absolute top-4 right-4 p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-xs text-slate-500 mb-1 block">Nome</label>
-                    <input
-                      type="text"
-                      name="nome"
-                      value={contato.nome}
-                      onChange={(e) => handleContactChange(index, e)}
-                      placeholder="Nome do contato"
-                      className={inputClasses}
-                      disabled={isReadOnly}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-500 mb-1 block">Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={contato.email}
-                      onChange={(e) => handleContactChange(index, e)}
-                      placeholder="email@empresa.com"
-                      className={inputClasses}
-                      disabled={isReadOnly}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-500 mb-1 block">Telefone</label>
-                    <input
-                      type="tel"
-                      name="telefone"
-                      value={contato.telefone}
-                      onChange={(e) => handleContactChange(index, e)}
-                      placeholder="(00) 00000-0000"
                       className={inputClasses}
                       disabled={isReadOnly}
                     />
