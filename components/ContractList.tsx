@@ -42,8 +42,7 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
       'Ativo': 'bg-green-500/10 text-green-500 border-green-500/20',
       'Pendente': 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
       'Instalação Concluída': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-      'Encerrado': 'bg-slate-500/10 text-slate-400 border-slate-500/20',
-      'Cancelado': 'bg-red-500/10 text-red-500 border-red-500/20'
+      'Encerrado': 'bg-slate-500/10 text-slate-400 border-slate-500/20'
     };
     return (
       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${styles[status as keyof typeof styles] || styles.Pendente}`}>
@@ -175,15 +174,15 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className={`text-sm font-medium flex items-center gap-1.5 ${!['Encerrado', 'Instalação Concluída', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() ? 'text-red-500' :
-                          !['Encerrado', 'Instalação Concluída', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) ? 'text-orange-500 font-bold' : 'text-slate-300'
+                        <span className={`text-sm font-medium flex items-center gap-1.5 ${!['Encerrado', 'Instalação Concluída'].includes(contrato.status) && contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() ? 'text-red-500' :
+                          !['Encerrado', 'Instalação Concluída'].includes(contrato.status) && contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) ? 'text-orange-500 font-bold' : 'text-slate-300'
                           }`}>
                           {contrato.prazo_execucao ? new Date(contrato.prazo_execucao).toLocaleDateString('pt-BR') : 'N/A'}
-                          {!['Encerrado', 'Instalação Concluída', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) && (
+                          {!['Encerrado', 'Instalação Concluída'].includes(contrato.status) && contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) && (
                             <AlertTriangle size={14} className={new Date(contrato.prazo_execucao) < new Date() ? 'text-red-500' : 'text-orange-500'} />
                           )}
                         </span>
-                        {!['Encerrado', 'Instalação Concluída', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) && (
+                        {!['Encerrado', 'Instalação Concluída'].includes(contrato.status) && contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) && (
                           <span className={`text-[10px] font-bold uppercase ${new Date(contrato.prazo_execucao) < new Date() ? 'text-red-500' : 'text-orange-500'}`}>
                             {new Date(contrato.prazo_execucao) < new Date() ? 'Atrasado' : 'Instalação em breve'}
                           </span>

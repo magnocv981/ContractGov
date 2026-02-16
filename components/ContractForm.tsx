@@ -191,7 +191,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div>
-            <label className={labelClasses}>Contrato (Nº)</label>
+            <label className={labelClasses}>Contrato</label>
             <input
               type="text"
               name="numero_contrato"
@@ -317,7 +317,6 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               <option value="Ativo">Ativo</option>
               <option value="Instalação Concluída">Instalação Concluída</option>
               <option value="Encerrado">Encerrado</option>
-              <option value="Cancelado">Cancelado</option>
             </select>
           </div>
 
@@ -337,7 +336,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               </h3>
             </div>
             <div>
-              <label className={labelClasses}>Plataforma (Contratada)</label>
+              <label className={labelClasses}>Plataforma (Qtde Contratada)</label>
               <input
                 type="number"
                 name="qtde_plataformas"
@@ -349,7 +348,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               />
             </div>
             <div>
-              <label className={labelClasses}>Plataforma (Instalada)</label>
+              <label className={labelClasses}>Plataforma (Qtde instalada)</label>
               <input
                 type="number"
                 name="instalados_plataformas"
@@ -361,7 +360,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               />
             </div>
             <div>
-              <label className={labelClasses}>Elevador (Contratada)</label>
+              <label className={labelClasses}>Elevador (Qtde Contratada)</label>
               <input
                 type="number"
                 name="qtde_elevadores"
@@ -373,7 +372,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               />
             </div>
             <div>
-              <label className={labelClasses}>Elevador (Instalada)</label>
+              <label className={labelClasses}>Elevador (Qtde instalada)</label>
               <input
                 type="number"
                 name="instalados_elevadores"

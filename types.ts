@@ -42,7 +42,7 @@ export interface Contrato {
   cnpj: string;
   estado: string;
   valor_global: number;
-  status: 'Ativo' | 'Pendente' | 'Instalação Concluída' | 'Encerrado' | 'Cancelado';
+  status: 'Ativo' | 'Pendente' | 'Instalação Concluída' | 'Encerrado';
   qtde_plataformas: number;
   qtde_elevadores: number;
   instalados_plataformas: number;

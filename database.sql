@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS contratos (
     cnpj TEXT,
     estado TEXT NOT NULL,
     valor_global DECIMAL(15, 2) NOT NULL DEFAULT 0,
-    status TEXT CHECK (status IN ('Ativo', 'Pendente', 'Encerrado', 'Cancelado')) NOT NULL DEFAULT 'Pendente',
+    status TEXT CHECK (status IN ('Ativo', 'Pendente', 'Instalação Concluída', 'Encerrado')) NOT NULL DEFAULT 'Pendente',
     qtde_plataformas INTEGER NOT NULL DEFAULT 0,
     qtde_elevadores INTEGER NOT NULL DEFAULT 0,
     instalados_plataformas INTEGER NOT NULL DEFAULT 0,
@@ -148,7 +148,7 @@ ALTER TABLE contratos ADD COLUMN IF NOT EXISTS endereco_instalacao TEXT;
 -- Atualizar restrições de status
 ALTER TABLE contratos DROP CONSTRAINT IF EXISTS contratos_status_check;
 ALTER TABLE contratos ADD CONSTRAINT contratos_status_check 
-  CHECK (status IN ('Ativo', 'Pendente', 'Instalação Concluída', 'Encerrado', 'Cancelado'));
+  CHECK (status IN ('Ativo', 'Pendente', 'Instalação Concluída', 'Encerrado'));
 
 -- Tabela de Observações/Histórico
 CREATE TABLE IF NOT EXISTS contrato_observacoes (
