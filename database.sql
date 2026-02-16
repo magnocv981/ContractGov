@@ -140,3 +140,28 @@ CREATE POLICY "Usuários podem atualizar seus próprios clientes" ON clientes
 
 CREATE POLICY "Usuários podem deletar seus próprios clientes" ON clientes
     FOR DELETE USING (auth.uid() = user_id);
+
+-- Atualizações no Módulo de Contrato (Fase 2)
+ALTER TABLE contratos ADD COLUMN IF NOT EXISTS numero_contrato TEXT;
+ALTER TABLE contratos ADD COLUMN IF NOT EXISTS endereco_instalacao TEXT;
+
+-- Atualizar restrições de status
+ALTER TABLE contratos DROP CONSTRAINT IF EXISTS contratos_status_check;
+ALTER TABLE contratos ADD CONSTRAINT contratos_status_check 
+  CHECK (status IN ('Ativo', 'Pendente', 'Instalação Concluída', 'Encerrado', 'Cancelado'));
+
+-- Tabela de Observações/Histórico
+CREATE TABLE IF NOT EXISTS contrato_observacoes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  contrato_id UUID REFERENCES contratos(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id),
+  texto TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Ativar RLS e políticas para observações
+ALTER TABLE contrato_observacoes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage their own contract observations"
+  ON contrato_observacoes FOR ALL
+  USING (auth.uid() = user_id);

@@ -72,14 +72,15 @@ export const supabaseService = {
 
     const { data, error } = await supabase
       .from('contratos')
-      .select('*, contatos(*), aditivos(*), clientes(*)')
+      .select('*, contatos(*), aditivos(*), clientes(*), contrato_observacoes(*)')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    // Map 'clientes' to 'cliente' object in Contrato interface
+    // Map 'clientes' to 'cliente' object and 'contrato_observacoes' to 'observacoes'
     return (data || []).map(c => ({
       ...c,
-      cliente: c.clientes
+      cliente: c.clientes,
+      observacoes: c.contrato_observacoes
     })) as Contrato[];
   },
 
@@ -104,6 +105,8 @@ export const supabaseService = {
     // Remove relations from contract object if it exists to avoid error on insert/update
     delete contractData.contatos;
     delete contractData.aditivos;
+    delete contractData.observacoes;
+    delete contractData.contrato_observacoes;
     delete contractData.cliente;
     delete contractData.clientes;
 
@@ -177,6 +180,21 @@ export const supabaseService = {
       .from('contratos')
       .delete()
       .eq('id', id);
+    if (error) throw error;
+  },
+
+  // Observações
+  async addObservacao(contratoId: string, texto: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Usuário não autenticado');
+
+    const { error } = await supabase
+      .from('contrato_observacoes')
+      .insert({
+        contrato_id: contratoId,
+        user_id: user.id,
+        texto
+      });
     if (error) throw error;
   }
 };
