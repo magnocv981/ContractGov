@@ -84,3 +84,59 @@ CREATE POLICY "Usuários podem deletar contatos de seus contratos" ON contatos
             AND contratos.user_id = auth.uid()
         )
     );
+-- Tabela de Clientes
+CREATE TABLE IF NOT EXISTS clientes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    nome TEXT NOT NULL,
+    cnpj TEXT,
+    endereco TEXT,
+    endereco_numero TEXT,
+    endereco_bairro TEXT,
+    endereco_cep TEXT,
+    endereco_cidade TEXT,
+    endereco_estado TEXT,
+    contato_nome TEXT,
+    telefone TEXT,
+    whatsapp TEXT,
+    email TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Adicionar colunas se não existirem
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'clientes' AND COLUMN_NAME = 'endereco_numero') THEN
+        ALTER TABLE clientes ADD COLUMN endereco_numero TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'clientes' AND COLUMN_NAME = 'endereco_bairro') THEN
+        ALTER TABLE clientes ADD COLUMN endereco_bairro TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'clientes' AND COLUMN_NAME = 'endereco_cep') THEN
+        ALTER TABLE clientes ADD COLUMN endereco_cep TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'clientes' AND COLUMN_NAME = 'endereco_cidade') THEN
+        ALTER TABLE clientes ADD COLUMN endereco_cidade TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'clientes' AND COLUMN_NAME = 'endereco_estado') THEN
+        ALTER TABLE clientes ADD COLUMN endereco_estado TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'clientes' AND COLUMN_NAME = 'contato_nome') THEN
+        ALTER TABLE clientes ADD COLUMN contato_nome TEXT;
+    END IF;
+END $$;
+
+-- RLS para Clientes
+ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Usuários podem ver seus próprios clientes" ON clientes
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Usuários podem inserir seus próprios clientes" ON clientes
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Usuários podem atualizar seus próprios clientes" ON clientes
+    FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Usuários podem deletar seus próprios clientes" ON clientes
+    FOR DELETE USING (auth.uid() = user_id);

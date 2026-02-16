@@ -192,6 +192,7 @@ const App: React.FC = () => {
         return (
           <CustomerList
             clientes={clientes}
+            contratos={contratos}
             onEdit={handleEditCustomer}
             onDelete={handleDeleteCustomer}
             onNew={() => { setEditingCliente(null); setCurrentScreen(Screen.CustomerForm); }}

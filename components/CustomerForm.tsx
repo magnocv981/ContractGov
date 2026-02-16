@@ -13,6 +13,12 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ cliente, onSave, onCancel }
         nome: '',
         cnpj: '',
         endereco: '',
+        endereco_numero: '',
+        endereco_bairro: '',
+        endereco_cep: '',
+        endereco_cidade: '',
+        endereco_estado: '',
+        contato_nome: '',
         telefone: '',
         whatsapp: '',
         email: ''
@@ -82,6 +88,20 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ cliente, onSave, onCancel }
 
                     <div>
                         <label className="text-sm font-medium text-slate-400 mb-2 block flex items-center gap-2">
+                            <Users size={16} /> Contato
+                        </label>
+                        <input
+                            type="text"
+                            name="contato_nome"
+                            value={formData.contato_nome}
+                            onChange={handleChange}
+                            className={inputClasses}
+                            placeholder="Nome do responsável"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="text-sm font-medium text-slate-400 mb-2 block flex items-center gap-2">
                             <Mail size={16} /> Email
                         </label>
                         <input
@@ -122,18 +142,84 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ cliente, onSave, onCancel }
                         />
                     </div>
 
+                    <div className="md:col-span-2 mt-4 pt-4 border-t border-slate-700/50">
+                        <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                            <MapPin size={16} className="text-blue-500" /> Endereço
+                        </h3>
+                    </div>
+
                     <div className="md:col-span-2">
-                        <label className="text-sm font-medium text-slate-400 mb-2 block flex items-center gap-2">
-                            <MapPin size={16} /> Endereço Completo
-                        </label>
-                        <textarea
+                        <label className="text-sm font-medium text-slate-400 mb-2 block">Logradouro</label>
+                        <input
+                            type="text"
                             name="endereco"
                             value={formData.endereco}
                             onChange={handleChange}
-                            rows={3}
                             className={inputClasses}
-                            placeholder="Rua, Número, Bairro, Cidade - UF"
+                            placeholder="Rua, Avenida, etc."
                         />
+                    </div>
+
+                    <div>
+                        <label className="text-sm font-medium text-slate-400 mb-2 block">Número</label>
+                        <input
+                            type="text"
+                            name="endereco_numero"
+                            value={formData.endereco_numero}
+                            onChange={handleChange}
+                            className={inputClasses}
+                            placeholder="123"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="text-sm font-medium text-slate-400 mb-2 block">Bairro</label>
+                        <input
+                            type="text"
+                            name="endereco_bairro"
+                            value={formData.endereco_bairro}
+                            onChange={handleChange}
+                            className={inputClasses}
+                            placeholder="Centro"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="text-sm font-medium text-slate-400 mb-2 block">CEP</label>
+                        <input
+                            type="text"
+                            name="endereco_cep"
+                            value={formData.endereco_cep}
+                            onChange={handleChange}
+                            className={inputClasses}
+                            placeholder="00000-000"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4 md:col-span-1">
+                        <div className="col-span-2">
+                            <label className="text-sm font-medium text-slate-400 mb-2 block">Cidade</label>
+                            <input
+                                type="text"
+                                name="endereco_cidade"
+                                value={formData.endereco_cidade}
+                                onChange={handleChange}
+                                className={inputClasses}
+                                placeholder="São Paulo"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium text-slate-400 mb-2 block">UF</label>
+                            <input
+                                type="text"
+                                name="endereco_estado"
+                                value={formData.endereco_estado}
+                                onChange={handleChange}
+                                className={inputClasses}
+                                placeholder="SP"
+                                maxLength={2}
+                            />
+                        </div>
                     </div>
                 </div>
 

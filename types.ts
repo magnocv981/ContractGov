@@ -12,6 +12,12 @@ export interface Cliente {
   nome: string;
   cnpj: string;
   endereco?: string;
+  endereco_numero?: string;
+  endereco_bairro?: string;
+  endereco_cep?: string;
+  endereco_cidade?: string;
+  endereco_estado?: string;
+  contato_nome?: string;
   telefone?: string;
   whatsapp?: string;
   email?: string;
