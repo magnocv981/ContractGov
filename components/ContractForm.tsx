@@ -44,7 +44,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
     prazo_garantia_dias: 365,
   });
 
-  const [isReadOnly, setIsReadOnly] = useState(!!contratoToEdit);
+  const [isReadOnly, setIsReadOnly] = useState(!!contratoToEdit?.id);
 
   const [contatos, setContatos] = useState<Contato[]>([
     { nome: '', email: '', telefone: '' }
