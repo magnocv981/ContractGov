@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Edit2, Trash2, Search, Filter, LayoutGrid, FilePlus } from 'lucide-react';
+import { Edit2, Trash2, Search, Filter, LayoutGrid, FilePlus, AlertTriangle, MapPin } from 'lucide-react';
 import { Contrato, Screen } from '../types';
 
 interface ContractListProps {
@@ -41,6 +41,7 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
     const styles = {
       'Ativo': 'bg-green-500/10 text-green-500 border-green-500/20',
       'Pendente': 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
+      'Instalação Concluída': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
       'Encerrado': 'bg-slate-500/10 text-slate-400 border-slate-500/20',
       'Cancelado': 'bg-red-500/10 text-red-500 border-red-500/20'
     };
@@ -135,10 +136,18 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
+                        <div className="font-medium text-white group-hover:text-blue-400 transition-colors uppercase text-[10px] tracking-widest bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">
+                          {contrato.numero_contrato || 'S/N'}
+                        </div>
                         <div className="font-medium text-white group-hover:text-blue-400 transition-colors">{contrato.cliente_orgao}</div>
                         {hasAditivos && <FilePlus size={14} className="text-emerald-500" title="Possui termos aditivos" />}
                       </div>
                       <div className="text-xs text-slate-500 truncate max-w-xs">{contrato.objeto_contrato || 'Sem descrição'}</div>
+                      {contrato.endereco_instalacao && (
+                        <div className="text-[10px] text-slate-600 truncate max-w-xs italic flex items-center gap-1 mt-0.5 italic">
+                          <MapPin size={10} /> {contrato.endereco_instalacao}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-slate-300 font-mono">{contrato.estado}</td>
                     <td className="px-6 py-4 font-semibold text-blue-400">
@@ -166,13 +175,18 @@ const ContractList: React.FC<ContractListProps> = ({ contratos, onEdit, onDelete
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className={`text-sm font-medium ${!['Encerrado', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() ? 'text-red-500' :
-                          !['Encerrado', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) ? 'text-orange-500' : 'text-slate-300'
+                        <span className={`text-sm font-medium flex items-center gap-1.5 ${!['Encerrado', 'Instalação Concluída', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() ? 'text-red-500' :
+                          !['Encerrado', 'Instalação Concluída', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) ? 'text-orange-500 font-bold' : 'text-slate-300'
                           }`}>
                           {contrato.prazo_execucao ? new Date(contrato.prazo_execucao).toLocaleDateString('pt-BR') : 'N/A'}
+                          {!['Encerrado', 'Instalação Concluída', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) && (
+                            <AlertTriangle size={14} className={new Date(contrato.prazo_execucao) < new Date() ? 'text-red-500' : 'text-orange-500'} />
+                          )}
                         </span>
-                        {!['Encerrado', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && new Date(contrato.prazo_execucao) < new Date() && (
-                          <span className="text-[10px] text-red-500 font-bold uppercase">Atrasado</span>
+                        {!['Encerrado', 'Instalação Concluída', 'Cancelado'].includes(contrato.status) && contrato.prazo_execucao && (new Date(contrato.prazo_execucao).getTime() - new Date().getTime()) < (15 * 24 * 60 * 60 * 1000) && (
+                          <span className={`text-[10px] font-bold uppercase ${new Date(contrato.prazo_execucao) < new Date() ? 'text-red-500' : 'text-orange-500'}`}>
+                            {new Date(contrato.prazo_execucao) < new Date() ? 'Atrasado' : 'Instalação em breve'}
+                          </span>
                         )}
                       </div>
                     </td>

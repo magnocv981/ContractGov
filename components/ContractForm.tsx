@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, X, User, CheckCircle, ShieldCheck, Edit2, FilePlus, Users } from 'lucide-react';
+import { Plus, Trash2, Save, X, User, CheckCircle, ShieldCheck, Edit2, FilePlus, Users, ClipboardList } from 'lucide-react';
 import { Contrato, Contato, Aditivo, Screen, Cliente } from '../types';
 import { supabaseService } from '../supabaseClient';
 
@@ -190,6 +190,20 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div>
+            <label className={labelClasses}>Contrato (Nº)</label>
+            <input
+              type="text"
+              name="numero_contrato"
+              value={formData.numero_contrato || ''}
+              onChange={handleChange}
+              placeholder="Ex: 123/2026"
+              className={inputClasses}
+              autoComplete="off"
+              disabled={isReadOnly}
+            />
+          </div>
+
           <div className="lg:col-span-2">
             <label className={labelClasses}>
               <Users size={16} className="inline mr-2" /> Vincular Cliente Cadastrado (Opcional)
@@ -208,7 +222,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
             </select>
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="nd:col-span-1">
             <label className={labelClasses}>Estado</label>
             <select
               name="estado"
@@ -252,8 +266,21 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
             />
           </div>
 
+          <div className="md:col-span-2">
+            <label className={labelClasses}>Endereço de Instalação</label>
+            <input
+              type="text"
+              name="endereco_instalacao"
+              value={formData.endereco_instalacao || ''}
+              onChange={handleChange}
+              placeholder="Rua, Número, Bairro, Cidade..."
+              className={inputClasses}
+              disabled={isReadOnly}
+            />
+          </div>
+
           <div>
-            <label className={labelClasses}>Valor Global Base (R$)</label>
+            <label className={labelClasses}>Valor do Contrato (R$)</label>
             <div className="relative">
               {isReadOnly ? (
                 <div className={`${inputClasses} pl-4 font-mono font-bold text-blue-400 bg-slate-900/50 flex items-center`}>
@@ -278,16 +305,17 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
           </div>
 
           <div>
-            <label className={labelClasses}>Status</label>
+            <label className={labelClasses}>Status do Contrato</label>
             <select
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className={inputClasses}
+              className={`${inputClasses} ${formData.status === 'Instalação Concluída' ? 'border-blue-500 text-blue-400' : ''}`}
               disabled={isReadOnly}
             >
-              <option value="Ativo">Ativo</option>
               <option value="Pendente">Pendente</option>
+              <option value="Ativo">Ativo</option>
+              <option value="Instalação Concluída">Instalação Concluída</option>
               <option value="Encerrado">Encerrado</option>
               <option value="Cancelado">Cancelado</option>
             </select>
@@ -305,11 +333,11 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:col-span-2 bg-slate-800/30 p-4 rounded-lg border border-slate-700/50">
             <div className="sm:col-span-2 mb-2">
               <h3 className="text-sm font-semibold text-blue-400 flex items-center gap-2">
-                <LayoutGrid size={16} /> Quantidades do Contrato vs. Instaladas
+                <LayoutGrid size={16} /> Quantidades (Contratada vs. Instalada)
               </h3>
             </div>
             <div>
-              <label className={labelClasses}>Total Plataformas</label>
+              <label className={labelClasses}>Plataforma (Contratada)</label>
               <input
                 type="number"
                 name="qtde_plataformas"
@@ -321,7 +349,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               />
             </div>
             <div>
-              <label className={labelClasses}>Plataformas Instaladas</label>
+              <label className={labelClasses}>Plataforma (Instalada)</label>
               <input
                 type="number"
                 name="instalados_plataformas"
@@ -333,7 +361,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               />
             </div>
             <div>
-              <label className={labelClasses}>Total Elevadores</label>
+              <label className={labelClasses}>Elevador (Contratada)</label>
               <input
                 type="number"
                 name="qtde_elevadores"
@@ -345,7 +373,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
               />
             </div>
             <div>
-              <label className={labelClasses}>Elevadores Instalados</label>
+              <label className={labelClasses}>Elevador (Instalada)</label>
               <input
                 type="number"
                 name="instalados_elevadores"
@@ -372,7 +400,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
           </div>
 
           <div>
-            <label className={labelClasses}>Data de Início</label>
+            <label className={labelClasses}>Data Inicial do Contrato</label>
             <input
               type="date"
               name="data_inicio"
@@ -384,7 +412,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
             />
           </div>
           <div>
-            <label className={labelClasses}>Data de Encerramento Base</label>
+            <label className={labelClasses}>Data de Encerramento do Contrato</label>
             <input
               type="date"
               name="data_encerramento"
@@ -396,7 +424,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
             />
           </div>
           <div>
-            <label className={labelClasses}>Prazo de Execução / Instalação</label>
+            <label className={labelClasses}>Prazo Estimado para Instalação</label>
             <input
               type="date"
               name="prazo_execucao"
@@ -407,38 +435,108 @@ const ContractForm: React.FC<ContractFormProps> = ({ contratoToEdit, onSave, onC
             />
           </div>
 
-          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-900/10 p-5 rounded-xl border border-blue-500/20">
-            <div className="md:col-span-2 flex items-center gap-2 mb-1">
-              <ShieldCheck size={20} className="text-blue-400" />
-              <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider">Controle de Garantia do Equipamento</h3>
-            </div>
+          {(formData.status === 'Instalação Concluída' || formData.data_conclusao_instalacao) && (
+            <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-900/10 p-5 rounded-xl border border-blue-500/40 animate-in fade-in zoom-in-95 duration-300">
+              <div className="md:col-span-2 flex items-center gap-2 mb-1">
+                <ShieldCheck size={20} className="text-blue-400" />
+                <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider">Controle de Garantia do Equipamento</h3>
+              </div>
 
-            <div>
-              <label className={labelClasses}>Instalado em</label>
-              <input
-                type="date"
-                name="data_conclusao_instalacao"
-                value={formData.data_conclusao_instalacao || ''}
-                onChange={handleChange}
-                className={`${inputClasses} border-blue-900/50 focus:ring-blue-500`}
-                disabled={isReadOnly}
-              />
-              <p className="text-[10px] text-slate-500 mt-1">Ao preencher, o sistema solicitará o prazo de garantia.</p>
-            </div>
+              <div>
+                <label className={labelClasses}>Data da Conclusão da Instalação</label>
+                <input
+                  type="date"
+                  name="data_conclusao_instalacao"
+                  value={formData.data_conclusao_instalacao || ''}
+                  onChange={handleChange}
+                  className={`${inputClasses} border-blue-900/50 focus:ring-blue-500`}
+                  disabled={isReadOnly}
+                  required={formData.status === 'Instalação Concluída'}
+                />
+              </div>
 
-            <div>
-              <label className={labelClasses}>Prazo de Garantia (Dias)</label>
-              <input
-                type="number"
-                name="prazo_garantia_dias"
-                value={formData.prazo_garantia_dias || ''}
-                onChange={handleChange}
-                placeholder="Ex: 365"
-                className={`${inputClasses} border-blue-900/50 focus:ring-blue-500`}
-                disabled={isReadOnly}
-              />
+              <div>
+                <label className={labelClasses}>Dias da Cobertura da Garantia</label>
+                <input
+                  type="number"
+                  name="prazo_garantia_dias"
+                  value={formData.prazo_garantia_dias || ''}
+                  onChange={handleChange}
+                  placeholder="Ex: 365"
+                  className={`${inputClasses} border-blue-900/50 focus:ring-blue-500`}
+                  disabled={isReadOnly}
+                  required={formData.status === 'Instalação Concluída'}
+                />
+              </div>
             </div>
+          )}
+        </div>
+
+        {/* Section: Observações / Histórico */}
+        <div className="mt-10 pt-8 border-t border-slate-800">
+          <h3 className="text-lg font-semibold text-blue-400 flex items-center gap-2 mb-4">
+            <ClipboardList size={20} />
+            Observações (Histórico do Contrato)
+          </h3>
+
+          <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+            {(!formData.observacoes || formData.observacoes.length === 0) ? (
+              <div className="text-center py-6 bg-[#0f172a]/20 rounded-xl border border-dashed border-slate-800 text-slate-500 text-sm">
+                Nenhuma observação registrada.
+              </div>
+            ) : (
+              formData.observacoes.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((obs) => (
+                <div key={obs.id} className="bg-[#0f172a]/50 p-4 rounded-lg border border-slate-800/50">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">
+                      {new Date(obs.created_at).toLocaleString('pt-BR')}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-300 whitespace-pre-wrap">{obs.texto}</p>
+                </div>
+              ))
+            )}
           </div>
+
+          {!isReadOnly && (
+            <div className="flex gap-2">
+              <textarea
+                id="new-observation"
+                placeholder="Adicione um fato importante (ex: Contato com gestor feito em...)"
+                className={`${inputClasses} min-h-[80px]`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.ctrlKey) {
+                    const el = e.currentTarget;
+                    if (el.value.trim() && contratoToEdit?.id) {
+                      supabaseService.addObservacao(contratoToEdit.id, el.value.trim()).then(() => {
+                        el.value = '';
+                        // Refresh logic would go here or via re-fetch in parent
+                        alert('Observação adicionada com sucesso!');
+                      });
+                    }
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('new-observation') as HTMLTextAreaElement;
+                  if (el.value.trim() && contratoToEdit?.id) {
+                    supabaseService.addObservacao(contratoToEdit.id, el.value.trim()).then(() => {
+                      el.value = '';
+                      alert('Observação adicionada com sucesso!');
+                    });
+                  } else if (!contratoToEdit?.id) {
+                    alert('Salve o contrato antes de adicionar observações.');
+                  }
+                }}
+                className="bg-blue-600/10 text-blue-500 hover:bg-blue-600/20 px-4 rounded-lg border border-blue-500/20 transition-all font-bold text-sm"
+              >
+                Salvar Recado
+              </button>
+            </div>
+          )}
+          <p className="text-[10px] text-slate-500 mt-2">Pressione Ctrl + Enter para salvar rapidamente.</p>
         </div>
 
         {/* Section: Aditivos */}
