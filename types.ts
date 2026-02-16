@@ -37,12 +37,12 @@ export interface Aditivo {
 
 export interface Contrato {
   id?: string;
-  cliente_id?: string; // Novo campo
+  cliente_id?: string;
   cliente_orgao: string;
   cnpj: string;
   estado: string;
   valor_global: number;
-  status: 'Ativo' | 'Pendente' | 'Encerrado' | 'Cancelado';
+  status: 'Ativo' | 'Pendente' | 'Instalação Concluída' | 'Encerrado' | 'Cancelado';
   qtde_plataformas: number;
   qtde_elevadores: number;
   instalados_plataformas: number;
@@ -55,7 +55,19 @@ export interface Contrato {
   prazo_garantia_dias?: number;
   contatos?: Contato[];
   aditivos?: Aditivo[];
-  cliente?: Cliente; // Novo campo: relação com cliente
+  observacoes?: Observacao[];
+  cliente?: Cliente;
+  // Novos campos
+  numero_contrato?: string;
+  endereco_instalacao?: string;
+}
+
+export interface Observacao {
+  id: string;
+  contrato_id: string;
+  user_id: string;
+  texto: string;
+  created_at: string;
 }
 
 export type UserRole = 'admin' | 'user';
